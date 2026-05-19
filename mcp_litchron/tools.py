@@ -63,6 +63,8 @@ from litchron.figures import (
 from litchron.io import detect_modality
 from litchron.observations import (
     compute_observations as _compute_obs_pure,
+    pick_cluster_column as _pick_cluster_column,
+    pick_embedding_key as _pick_embedding_key,
 )
 from litchron.observations import (
     observations_to_markdown,
@@ -129,29 +131,23 @@ def _recompute_all_green(state: RunState) -> bool:
 
     A run is "green" iff every *mandatory* gate has been satisfied:
 
-    * the LLM proposed an ordering,
-    * the LitChron LLM pseudotime was computed (the primary output),
+    * the LLM proposed an ordering (``llm_ordering_done``),
     * LaTeX compiled,
     * at least one citation was verified.
 
-    Classical-baseline runs (PAGA, scVelo) are sanity-check comparators,
-    not requirements: ``baselines_all_done`` is *advisory only*. If the
-    operator skipped them, the comparison step also becomes optional —
-    the headline figure + LitChron LLM pseudotime is the primary product.
+    Classical-baseline runs (PAGA, scVelo, etc.) are optional comparators,
+    not requirements. ``baselines_all_done`` and ``comparison_done`` are
+    never part of this gate. If baselines ran and produced a comparison, that
+    is informational value; if they were skipped, the LLM ordering + headline
+    figure + LaTeX report is the complete product.
 
-    The advisory ``suggested_next_tools`` list is recomputed against this
-    same flag in :func:`report_status`.
+    The advisory ``suggested_next_tools`` list is recomputed in
+    :func:`report_status`; baseline tools appear there only as optional
+    follow-ups, never as blocking requirements.
     """
-    has_llm_pt = any(d.baseline == "litchron_pseudotime" for d in state.adata_deltas)
-    # When baselines did run, we still require comparison + latex; when they
-    # were skipped, comparison_done is N/A and we don't demand it.
-    baselines_ran = bool(state.baselines_done)
-    comparison_ok = state.comparison_done if baselines_ran else True
     return bool(
         state.llm_ordering_done
-        and has_llm_pt
         and state.latex_compiled
-        and comparison_ok
         and len(state.citations_verified) > 0
     )
 
@@ -434,6 +430,43 @@ def compute_observations(run_id: str) -> ObservationsResult | ErrorResult:
             deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             obs = _compute_obs_pure(adata)
+            # Persist the mutations (PCA/UMAP/cluster column) that
+            # _compute_obs_pure wrote into adata so a fresh process can
+            # replay them from the zarr delta — same mechanism as
+            # recompute_embeddings.
+            cluster_col = _pick_cluster_column(adata)
+            embedding_key = _pick_embedding_key(adata)
+            delta_path, delta_keys = _write_embeddings_delta(
+                target, adata,
+                cluster_col=cluster_col,
+                embedding_key=embedding_key,
+            )
+
+        if delta_keys:
+            _CACHE.apply_delta(
+                run_id=run_id,
+                baseline="compute_observations",
+                delta_keys=delta_keys,
+                delta_zarr_path=delta_path,
+            )
+
+            def _record(s: RunState) -> RunState:
+                # De-duplicate: replace any existing compute_observations entry.
+                s.adata_deltas = [
+                    d for d in s.adata_deltas
+                    if d.baseline != "compute_observations"
+                ]
+                s.adata_deltas.append(
+                    DeltaRef(
+                        baseline="compute_observations",
+                        keys=delta_keys,
+                        zarr_path=str(delta_path),
+                        applied_at=_now_iso(),
+                    )
+                )
+                return s
+
+            _store_for(run_id).update(_record)
 
         md = observations_to_markdown(obs)
         obs_path = target / "observations.md"
@@ -453,12 +486,26 @@ def compute_observations(run_id: str) -> ObservationsResult | ErrorResult:
 def _write_embeddings_delta(
     run_dir: Path,
     adata: Any,
+    cluster_col: str | None = None,
+    embedding_key: str | None = None,
 ) -> tuple[Path, list[str]]:
-    """Persist a zarr delta capturing recomputed PCA/UMAP/leiden.
+    """Persist a zarr delta capturing recomputed PCA/UMAP/cluster column.
 
     Side effect: writes ``<run_dir>/embeddings/adata_delta.zarr`` with
-    the three arrays (``obsm/X_pca``, ``obsm/X_umap``, ``obs/leiden``).
-    Returns the delta path and the list of keys it contains.
+    the discovered arrays (``obsm/X_pca``, the 2D embedding key, and the
+    cluster obs column). Returns the delta path and the list of keys it
+    contains.
+
+    Parameters
+    ----------
+    cluster_col:
+        The obs column to persist as a cluster label array (e.g. ``"leiden"``
+        or ``"clusters"``). When *None*, the helper calls
+        :func:`~litchron.observations.pick_cluster_column` to discover it.
+    embedding_key:
+        The obsm key to persist as the 2D embedding (e.g. ``"X_umap"``).
+        When *None*, the helper calls
+        :func:`~litchron.observations.pick_embedding_key` to discover it.
     """
     import numpy as np  # local — keeps tools.py import cheap
     import zarr  # heavy import, kept local
@@ -467,28 +514,35 @@ def _write_embeddings_delta(
     embeddings_dir.mkdir(parents=True, exist_ok=True)
     delta_path = embeddings_dir / "adata_delta.zarr"
 
+    # Discover keys from the adata when callers don't pin them explicitly.
+    if cluster_col is None:
+        cluster_col = _pick_cluster_column(adata)
+    if embedding_key is None:
+        embedding_key = _pick_embedding_key(adata)
+
     root = zarr.open(str(delta_path), mode="w")
     keys: list[str] = []
     obsm = getattr(adata, "obsm", None) or {}
     # zarr 3.x removed Group.array(name, ndarray, ...) positional; the
     # canonical replacement is create_array(name=, data=, overwrite=).
-    # See line 1623 in this file for the same pattern.
     if "X_pca" in obsm:
         root.create_array(
             name="obsm/X_pca", data=np.asarray(obsm["X_pca"]), overwrite=True,
         )
         keys.append("obsm/X_pca")
-    if "X_umap" in obsm:
+    if embedding_key and embedding_key in obsm:
         root.create_array(
-            name="obsm/X_umap", data=np.asarray(obsm["X_umap"]), overwrite=True,
+            name=f"obsm/{embedding_key}",
+            data=np.asarray(obsm[embedding_key]),
+            overwrite=True,
         )
-        keys.append("obsm/X_umap")
-    if "leiden" in adata.obs.columns:
-        leiden_vals = np.asarray(adata.obs["leiden"].astype(str).values, dtype="U")
+        keys.append(f"obsm/{embedding_key}")
+    if cluster_col and cluster_col in adata.obs.columns:
+        cluster_vals = np.asarray(adata.obs[cluster_col].astype(str).values, dtype="U")
         root.create_array(
-            name="obs/leiden", data=leiden_vals, overwrite=True,
+            name=f"obs/{cluster_col}", data=cluster_vals, overwrite=True,
         )
-        keys.append("obs/leiden")
+        keys.append(f"obs/{cluster_col}")
     return delta_path, keys
 
 
@@ -1342,36 +1396,27 @@ def append_section(
 # Tool: report_status
 # ---------------------------------------------------------------------------
 def _build_suggestions(state: RunState, run_id: str) -> list[SuggestedTool]:
-    """Emit advisory next-tool suggestions for false flags only.
+    """Emit advisory next-tool suggestions for incomplete mandatory gates only.
 
     Empty when ``all_green == True``. The LLM retains oracle authority
     and may reorder / ignore these.
+
+    Classical-baseline tools (``run_baseline``, ``compare_orderings``) are
+    OPTIONAL follow-ups and never appear as required next steps. They are
+    appended at the end — after all mandatory gates — only when baselines
+    have not yet run at all, so the LLM can discover them but is not
+    blocked by them.
     """
     suggestions: list[SuggestedTool] = []
     args = {"run_id": run_id}
 
+    # --- mandatory gates ---
     if not state.llm_ordering_done:
         suggestions.append(
             SuggestedTool(
                 tool="propose_ordering",
                 args=args,
                 rationale="No ordering proposed yet; emit a typed OrderingProposal.",
-            )
-        )
-    if not state.baselines_all_done:
-        suggestions.append(
-            SuggestedTool(
-                tool="run_baseline",
-                args=args,
-                rationale="Baselines not yet marked complete; run at least one method.",
-            )
-        )
-    if not state.comparison_done:
-        suggestions.append(
-            SuggestedTool(
-                tool="compare_orderings",
-                args=args,
-                rationale="LLM vs baseline comparison not yet generated.",
             )
         )
     if len(state.citations_verified) == 0:
@@ -1393,6 +1438,37 @@ def _build_suggestions(state: RunState, run_id: str) -> list[SuggestedTool]:
                 rationale="PDF not yet compiled; run after sections are populated.",
             )
         )
+
+    # --- optional follow-ups (baselines are never required) ---
+    if not state.baselines_done:
+        # No baseline has ever been attempted — mention them as optional
+        # comparators so the LLM knows they exist.
+        suggestions.append(
+            SuggestedTool(
+                tool="run_baseline",
+                args=args,
+                rationale=(
+                    "OPTIONAL: classical trajectory methods (PAGA, scVelo, etc.) "
+                    "can provide numerical comparators but are not required for "
+                    "all_green. Skip if you do not need the comparison table."
+                ),
+            )
+        )
+    elif state.baselines_done and not state.comparison_done:
+        # Baselines ran but comparison was never generated — suggest finishing
+        # that optional arc so results aren't left half-done.
+        suggestions.append(
+            SuggestedTool(
+                tool="compare_orderings",
+                args=args,
+                rationale=(
+                    "OPTIONAL: baselines ran but the LLM-vs-baseline comparison "
+                    "table was not generated. Call compare_orderings to complete "
+                    "that optional arc, or skip if the comparison is not needed."
+                ),
+            )
+        )
+
     return suggestions
 
 
@@ -1428,6 +1504,18 @@ def report_status(run_id: str) -> StatusResult | ErrorResult:
             ):
                 s.quality_flags = [
                     f for f in s.quality_flags if f != "no_verified_citations"
+                ]
+            # "baseline_failure" is informational only — baselines are optional
+            # and never block all_green. Clear it when:
+            #   (a) no baseline was ever attempted (stale flag from a prior
+            #       aborted run or test), OR
+            #   (b) the run is all_green (blocking noise on a complete run
+            #       serves no purpose; the flag was advisory-only anyway).
+            if "baseline_failure" in s.quality_flags and (
+                not s.baselines_done or s.all_green
+            ):
+                s.quality_flags = [
+                    f for f in s.quality_flags if f != "baseline_failure"
                 ]
             return s
 

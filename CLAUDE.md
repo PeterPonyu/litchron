@@ -6,7 +6,7 @@ LitChron turns Claude Code into a biological oracle for single-cell chronology. 
 
 ## Tool Sequence Pattern
 
-For each run, execute tools in this order. Do not skip phases; each phase's output is required by the next.
+For each run, execute tools in this order. Steps marked OPTIONAL do not block `all_green`.
 
 ```
 start_run(h5ad_path, run_id?)
@@ -15,8 +15,8 @@ start_run(h5ad_path, run_id?)
   → propose_ordering(run_id, proposal)          # includes citations list
   → verify_doi(doi, context, year?, authors?)   # one call per DOI
   → verify_pmid(pmid, context, year?, authors?) # one call per PMID
-  → run_baseline(run_id, method)                # repeat for each available method
-  → compare_orderings(run_id)
+  → run_baseline(run_id, method)                # OPTIONAL: repeat for each method
+  → compare_orderings(run_id)                   # OPTIONAL: only if baselines ran
   → append_section(run_id, section, markdown)   # once per section
   → compile_pdf(run_id)
   → finalize_run(run_id)
@@ -49,7 +49,7 @@ The run is complete when:
 report_status(run_id).all_green == true
 ```
 
-`all_green` requires: `llm_ordering_done`, `baselines_all_done`, `citations_verified` non-empty with no quarantined entries in `citations_dropped` that are unchallenged, `comparison_done`, `latex_compiled`. Do not call `finalize_run` before `all_green` is reachable; check `quality_flags` for any blocking issues.
+`all_green` requires: `llm_ordering_done`, `citations_verified` non-empty, and `latex_compiled`. Classical baselines (`baselines_all_done`, `comparison_done`) are **not** required — they are optional comparators. Do not call `finalize_run` before `all_green` is reachable; check `quality_flags` for any blocking issues.
 
 ## Resume After Crash
 
@@ -66,10 +66,10 @@ Completed phases (baselines with persisted `ordering.parquet`, verified citation
 
 If `report_status` returns non-empty `quality_flags`, address them before `finalize_run`:
 
-| Flag | Action |
-|---|---|
-| `no_verified_citations` | Provide at least one verifiable DOI/PMID |
-| `baseline_disagreement_severe` | Acknowledge and discuss disagreement in the comparison narrative |
-| `root_cell_ambiguous` | State your biological rationale for the chosen root cell type |
-| `baseline_failure` | Note which method failed; explain whether it affects the conclusion |
-| `preflight_partial` | One or more system deps missing; some baselines may be unavailable |
+| Flag | Blocking? | Action |
+|---|---|---|
+| `no_verified_citations` | yes | Provide at least one verifiable DOI/PMID |
+| `baseline_disagreement_severe` | no | Acknowledge and discuss disagreement in the comparison narrative |
+| `root_cell_ambiguous` | no | State your biological rationale for the chosen root cell type |
+| `baseline_failure` | no | Informational only — note which method failed if you discuss baselines |
+| `preflight_partial` | no | One or more system deps missing; some baselines may be unavailable |

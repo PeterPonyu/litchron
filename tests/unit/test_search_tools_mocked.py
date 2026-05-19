@@ -339,8 +339,8 @@ class TestMCPSearchEuropePMC:
 # ---------------------------------------------------------------------------
 
 def test_tool_registry_count() -> None:
-    """TOOL_REGISTRY should have 18 entries after R1+R2+R3 (12 base + 2 search + 2 figure + 2 LLM-pseudotime)."""
-    assert len(_tools.TOOL_REGISTRY) == 18
+    """TOOL_REGISTRY should have 19 entries (12 base + 2 search + 2 figure + 2 LLM-pseudotime + 1 emit_figure_script)."""
+    assert len(_tools.TOOL_REGISTRY) == 19
 
 
 def test_tool_registry_contains_search_tools() -> None:
