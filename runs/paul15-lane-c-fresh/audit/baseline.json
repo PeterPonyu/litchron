@@ -1,0 +1,126 @@
+{
+  "annotation": [
+    {
+      "type": "font_family_violation",
+      "severity": "warning",
+      "detail": "31 text(s) use non-standard font: 'LitChron annotation \u2014 2,7' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +28 more",
+      "elements": [
+        "'LitChron annotation \u2014 2,7' uses serif",
+        "'UMAP$_1$' uses serif",
+        "'UMAP$_2$' uses serif",
+        "'4' uses serif",
+        "'1' uses serif"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle(cluster_3)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 1",
+        "patch: Rectangle(cluster_3)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 2' overlaps content 'patch: Rectangle(cluster_1)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 2",
+        "patch: Rectangle(cluster_1)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 2' overlaps content 'patch: Rectangle(cluster_4)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 2",
+        "patch: Rectangle(cluster_4)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle(cluster_0)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 3",
+        "patch: Rectangle(cluster_0)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle(cluster_2)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 3",
+        "patch: Rectangle(cluster_2)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle(cluster_6)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 4",
+        "patch: Rectangle(cluster_6)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle(cluster_8)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 4",
+        "patch: Rectangle(cluster_8)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_5)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_5)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_7)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_7)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "bold_usage",
+      "severity": "info",
+      "detail": "20 text(s) use bold fontweight",
+      "elements": [],
+      "severity_level": "INFO",
+      "figure_num": 1
+    }
+  ],
+  "comparison_strip": []
+}
