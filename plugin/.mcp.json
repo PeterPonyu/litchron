@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "litchron": {
+      "command": "${LITCHRON_PYTHON}",
+      "args": ["-m", "mcp_litchron.server"]
+    },
+    "scivcd": {
+      "command": "${LITCHRON_PYTHON}",
+      "args": ["-m", "scivcd.mcp"]
+    }
+  }
+}
