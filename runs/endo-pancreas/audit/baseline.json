@@ -1,0 +1,27 @@
+{
+  "annotation": [
+    {
+      "type": "font_family_violation",
+      "severity": "warning",
+      "detail": "18 text(s) use non-standard font: 'LitChron annotation \u2014 2,5' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +15 more",
+      "elements": [
+        "'LitChron annotation \u2014 2,5' uses serif",
+        "'UMAP$_1$' uses serif",
+        "'UMAP$_2$' uses serif",
+        "'Fev+' uses serif",
+        "'Alpha' uses serif"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "bold_usage",
+      "severity": "info",
+      "detail": "9 text(s) use bold fontweight",
+      "elements": [],
+      "severity_level": "INFO",
+      "figure_num": 1
+    }
+  ],
+  "comparison_strip": []
+}

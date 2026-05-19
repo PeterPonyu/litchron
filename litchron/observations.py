@@ -22,7 +22,24 @@ from litchron.embeddings import recompute_embeddings
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-_CLUSTER_CANDIDATES: tuple[str, ...] = ("leiden", "louvain", "cell_type")
+# Cluster column candidates, scanned in order. Extended beyond the original
+# (leiden/louvain/cell_type) to cover common upstream tutorial AnnData layouts:
+# scvelo's pancreas dataset uses "clusters" / "clusters_coarse" / "clusters_fine";
+# cellxgene downloads often expose "ClusterName" / "Clusters". Order is
+# significant: scanpy-native names win when present so the LLM oracle's
+# proposal IDs (which assume leiden/louvain numbering) keep matching.
+_CLUSTER_CANDIDATES: tuple[str, ...] = (
+    "leiden",
+    "louvain",
+    "cell_type",
+    "celltype",
+    "annotation",
+    "clusters",
+    "Clusters",
+    "cluster",
+    "ClusterName",
+    "cluster_label",
+)
 _TOP_N_MARKERS: int = 8
 
 
@@ -43,10 +60,39 @@ class Observations(BaseModel):
 # ---------------------------------------------------------------------------
 # Compute
 # ---------------------------------------------------------------------------
-def _pick_cluster_column(adata: AnnData) -> str | None:
-    """Return the first cluster column found in ``adata.obs``, or None."""
+def pick_cluster_column(adata: AnnData) -> str | None:
+    """Return the first known cluster column found in ``adata.obs``, or None.
+
+    Public because the figure builders and audit driver need the same
+    resolution logic to support runs bootstrapped from upstream AnnDatas
+    that don't use scanpy's default ``leiden`` column name.
+    """
     for candidate in _CLUSTER_CANDIDATES:
         if candidate in adata.obs.columns:
+            return candidate
+    return None
+
+
+# Internal alias preserved for backward compatibility with existing call sites.
+_pick_cluster_column = pick_cluster_column
+
+
+# 2D embedding-key candidates, scanned in order. Scanpy writes "X_umap" by
+# default; some pipelines/tutorials use the upper-case or t-SNE variant. We
+# stop at the first match; figures.py expects exactly 2D coordinates.
+_EMBEDDING_CANDIDATES: tuple[str, ...] = ("X_umap", "X_UMAP", "umap", "X_tsne", "X_TSNE")
+
+
+def pick_embedding_key(adata: AnnData) -> str | None:
+    """Return the first known 2D-embedding key found in ``adata.obsm``, or None.
+
+    Used by figure builders that need scatter coordinates. Callers should
+    handle ``None`` with a clear "run recompute_embeddings first" error
+    rather than letting a downstream ``KeyError`` propagate.
+    """
+    obsm_keys = getattr(adata, "obsm", {}) or {}
+    for candidate in _EMBEDDING_CANDIDATES:
+        if candidate in obsm_keys:
             return candidate
     return None
 

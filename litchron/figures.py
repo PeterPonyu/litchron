@@ -184,6 +184,36 @@ def make_litchron_annotation_figure(
     """
     _apply_serif_style()
 
+    # Auto-resolve cluster_col when the requested column isn't in obs. The
+    # default "leiden" only works for runs that went through compute_observations;
+    # runs bootstrapped from upstream tutorial AnnDatas may use ClusterName,
+    # Clusters, clusters_coarse, etc. Resolution mirrors observations.py.
+    if cluster_col not in adata.obs.columns:
+        from litchron.observations import pick_cluster_column
+
+        resolved = pick_cluster_column(adata)
+        if resolved is None:
+            raise ValueError(
+                f"No cluster column found in adata.obs (requested "
+                f"{cluster_col!r}; known candidates also missing). Run "
+                "compute_observations first, or pass cluster_col explicitly."
+            )
+        cluster_col = resolved
+
+    # Auto-resolve 2D embedding key. The headline figure is a UMAP scatter, so
+    # adata.obsm must carry one of the known embedding keys. If none are
+    # present the AnnData hasn't been embedded yet — raise a clear, actionable
+    # error instead of letting a downstream KeyError surface.
+    from litchron.observations import pick_embedding_key
+
+    embedding_key = pick_embedding_key(adata)
+    if embedding_key is None:
+        raise ValueError(
+            "No 2D embedding found in adata.obsm (looked for X_umap, X_UMAP, "
+            "umap, X_tsne, X_TSNE). Run recompute_embeddings or "
+            "compute_observations first to populate adata.obsm['X_umap']."
+        )
+
     run_dir = Path(run_dir)
     out_dir = run_dir / "figures"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -202,7 +232,7 @@ def make_litchron_annotation_figure(
     palette = _ordered_discrete_palette(max(1, len(ordered)))
     cluster_color: dict[str, tuple] = {cid: palette[i] for i, cid in enumerate(ordered)}
 
-    coords = adata.obsm["X_umap"]
+    coords = adata.obsm[embedding_key]
     labels = adata.obs[cluster_col].astype(str).values
 
     # --- figure layout: one huge panel + bottom colorbar ---------------
@@ -254,7 +284,7 @@ def make_litchron_annotation_figure(
         legend_labels.append(entry)
 
     # --- centroid-overlaid cluster IDs ----------------------------------
-    for cid, (cx, cy) in _per_cluster_centroid(adata, "X_umap", cluster_col).items():
+    for cid, (cx, cy) in _per_cluster_centroid(adata, embedding_key, cluster_col).items():
         ax.text(
             cx, cy, cid,
             fontsize=17, weight="bold", ha="center", va="center",
@@ -348,6 +378,19 @@ def make_pseudotime_comparison_strip(
     ``<run_dir>/figures/pseudotime_comparison.png`` for external inspection.
     """
     _apply_serif_style()
+
+    # Same auto-resolve as the annotation figure: comparison strip is a
+    # UMAP scatter, so adata.obsm must have a known embedding key.
+    from litchron.observations import pick_embedding_key
+
+    embedding_key = pick_embedding_key(adata)
+    if embedding_key is None:
+        raise ValueError(
+            "No 2D embedding found in adata.obsm (looked for X_umap, X_UMAP, "
+            "umap, X_tsne, X_TSNE). Run recompute_embeddings or "
+            "compute_observations first."
+        )
+
     run_dir = Path(run_dir)
     out_dir = run_dir / "figures"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -374,7 +417,7 @@ def make_pseudotime_comparison_strip(
     if n_panels == 1:
         axes = [axes]
 
-    coords = adata.obsm["X_umap"]
+    coords = adata.obsm[embedding_key]
     for ax, (name, ser) in zip(axes, pts_named):
         aligned = ser.reindex(adata.obs.index).fillna(0.0).values.astype(float)
         vmin = float(np.nanmin(aligned)) if math.isfinite(np.nanmin(aligned)) else 0.0
