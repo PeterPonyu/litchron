@@ -156,16 +156,6 @@
   ],
   "comparison_strip": [
     {
-      "type": "effective_dpi_low",
-      "severity": "warning",
-      "detail": "effective DPI at rendered width 7.0in is 193 (fig_dpi=100.0, fig_width=13.5in); below 300",
-      "elements": [
-        "figure"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 2
-    },
-    {
       "type": "font_family_violation",
       "severity": "warning",
       "detail": "22 text(s) use non-standard font: 'LitChron LLM' uses serif; 'paga' uses serif; 'scvelo' uses serif ... +19 more",
@@ -175,39 +165,6 @@
         "'scvelo' uses serif",
         "'0.0' uses serif",
         "'0.2' uses serif"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 2
-    },
-    {
-      "type": "text_overlap",
-      "severity": "warning",
-      "detail": "'title: LitChron LLM' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
-      "elements": [
-        "title: LitChron LLM",
-        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 2
-    },
-    {
-      "type": "text_overlap",
-      "severity": "warning",
-      "detail": "'title: paga' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
-      "elements": [
-        "title: paga",
-        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 2
-    },
-    {
-      "type": "text_overlap",
-      "severity": "warning",
-      "detail": "'title: scvelo' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
-      "elements": [
-        "title: scvelo",
-        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
       ],
       "severity_level": "MAJOR",
       "figure_num": 2
