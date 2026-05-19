@@ -10,6 +10,10 @@ runs/*/*
 !runs/*/audit/
 runs/*/audit/*
 !runs/*/audit/baseline.json
+
+# Scanpy's default download cache for sc.datasets.* (e.g. paul15) — fresh-run
+# demos materialize this; never source.
+data/
 __pycache__/
 .pytest_cache/
 .mypy_cache/

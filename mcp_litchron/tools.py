@@ -431,6 +431,7 @@ def compute_observations(run_id: str) -> ObservationsResult | ErrorResult:
             run_id=run_id,
             h5ad_path=state.h5ad_path,
             run_dir=target,
+            deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             obs = _compute_obs_pure(adata)
 
@@ -519,6 +520,7 @@ def recompute_embeddings(
             run_id=run_id,
             h5ad_path=state.h5ad_path,
             run_dir=target,
+            deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             _recompute_embeddings_pure(
                 adata,
@@ -661,6 +663,7 @@ def make_annotation_figure(run_id: str) -> dict[str, Any]:
             run_id=run_id,
             h5ad_path=state.h5ad_path,
             run_dir=target,
+            deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             fig_path = _make_annotation_figure_pure(
                 adata=adata,
@@ -982,6 +985,7 @@ def run_baseline(run_id: str, method: BaselineName) -> dict[str, Any]:
             run_id=run_id,
             h5ad_path=state.h5ad_path,
             run_dir=target,
+            deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             try:
                 result = _baselines.run(
@@ -1677,6 +1681,7 @@ def compute_litchron_pseudotime(
             run_id=run_id,
             h5ad_path=state.h5ad_path,
             run_dir=target,
+            deltas=getattr(state, "adata_deltas", None),
         ) as adata:
             # Prefer the leiden column from recompute_embeddings; fall back
             # to "cell_type" inside compute_llm_pseudotime itself.
@@ -1865,7 +1870,7 @@ _label_map, _rank_map, _confidence_map = _read_proposal_maps(_target)
 _orig_close = plt.close
 plt.close = lambda *_a, **_k: None  # type: ignore[assignment]
 
-with _CACHE.with_adata(run_id=_RUN_ID, h5ad_path=_state.h5ad_path, run_dir=_target) as _adata:
+with _CACHE.with_adata(run_id=_RUN_ID, h5ad_path=_state.h5ad_path, run_dir=_target, deltas=getattr(_state, 'adata_deltas', None)) as _adata:
     make_litchron_annotation_figure(
         adata=_adata,
         run_dir=_target,
@@ -1936,7 +1941,7 @@ if not _baseline_pts:
 _orig_close = plt.close
 plt.close = lambda *_a, **_k: None  # type: ignore[assignment]
 
-with _CACHE.with_adata(run_id=_RUN_ID, h5ad_path=_state.h5ad_path, run_dir=_target) as _adata:
+with _CACHE.with_adata(run_id=_RUN_ID, h5ad_path=_state.h5ad_path, run_dir=_target, deltas=getattr(_state, 'adata_deltas', None)) as _adata:
     make_pseudotime_comparison_strip(
         adata=_adata,
         llm_pt=_llm_pt,
