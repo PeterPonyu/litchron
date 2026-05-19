@@ -469,15 +469,24 @@ def _write_embeddings_delta(
     root = zarr.open(str(delta_path), mode="w")
     keys: list[str] = []
     obsm = getattr(adata, "obsm", None) or {}
+    # zarr 3.x removed Group.array(name, ndarray, ...) positional; the
+    # canonical replacement is create_array(name=, data=, overwrite=).
+    # See line 1623 in this file for the same pattern.
     if "X_pca" in obsm:
-        root.array("obsm/X_pca", np.asarray(obsm["X_pca"]), overwrite=True)
+        root.create_array(
+            name="obsm/X_pca", data=np.asarray(obsm["X_pca"]), overwrite=True,
+        )
         keys.append("obsm/X_pca")
     if "X_umap" in obsm:
-        root.array("obsm/X_umap", np.asarray(obsm["X_umap"]), overwrite=True)
+        root.create_array(
+            name="obsm/X_umap", data=np.asarray(obsm["X_umap"]), overwrite=True,
+        )
         keys.append("obsm/X_umap")
     if "leiden" in adata.obs.columns:
         leiden_vals = np.asarray(adata.obs["leiden"].astype(str).values, dtype="U")
-        root.array("obs/leiden", leiden_vals, overwrite=True)
+        root.create_array(
+            name="obs/leiden", data=leiden_vals, overwrite=True,
+        )
         keys.append("obs/leiden")
     return delta_path, keys
 

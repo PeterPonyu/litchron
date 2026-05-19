@@ -246,10 +246,26 @@ class AnnDataCache:
                 continue
             root = zarr.open(str(zarr_path), mode="r")
             for key in delta.keys:
-                if key in root:
-                    # Zarr arrays come back as numpy on indexing; this is
-                    # the natural shape for adata.uns / adata.layers.
-                    adata.uns[key] = root[key][...]
+                if key not in root:
+                    continue
+                value = root[key][...]
+                # Route the value to the correct AnnData slot based on the
+                # key's namespace prefix. Without this routing, every delta
+                # key landed in adata.uns under its full prefixed name, so
+                # downstream code expecting adata.obsm['X_umap'] never saw
+                # the replayed embedding.
+                if key.startswith("obsm/"):
+                    adata.obsm[key[len("obsm/"):]] = value
+                elif key.startswith("obs/"):
+                    adata.obs[key[len("obs/"):]] = value
+                elif key.startswith("layers/"):
+                    adata.layers[key[len("layers/"):]] = value
+                elif key.startswith("uns/"):
+                    adata.uns[key[len("uns/"):]] = value
+                else:
+                    # Unknown namespace — stash in uns under the original
+                    # key for forensic visibility rather than dropping.
+                    adata.uns[key] = value
             self.apply_delta(run_id, delta.baseline, list(delta.keys), zarr_path)
         return adata
 
@@ -259,14 +275,32 @@ class AnnDataCache:
         run_id: str,
         h5ad_path: str,
         run_dir: Path,
+        deltas: list[DeltaRef] | None = None,
     ) -> Iterator[AnnData]:
         """Context manager yielding the cached AnnData for ``run_id``.
+
+        When ``deltas`` is provided AND the cache is cold for this run_id,
+        replays the deltas via :meth:`resume` so the materialized AnnData
+        carries every recorded obsm/obs/layers update from prior tool
+        invocations. Without this, a fresh process loading a run whose
+        embeddings live only in a zarr delta (e.g. after
+        ``recompute_embeddings`` in a different process) would see the
+        bare h5ad and miss adata.obsm['X_umap'] entirely.
+
+        When ``deltas`` is omitted (existing call sites) behavior is
+        unchanged — bare h5ad load via :meth:`load`.
 
         The cache holds a reference for the lifetime of the entry, so the
         context manager does not currently perform cleanup on exit — it
         exists to give baseline call-sites a uniform access pattern.
         """
-        adata = self.load(run_id, h5ad_path, run_dir)
+        cache_cold = run_id not in self._entries
+        if deltas and cache_cold:
+            # Cold cache + deltas to replay → use resume which routes each
+            # delta key into the correct AnnData slot.
+            adata = self.resume(run_id, h5ad_path, run_dir, deltas)
+        else:
+            adata = self.load(run_id, h5ad_path, run_dir)
         try:
             yield adata
         finally:

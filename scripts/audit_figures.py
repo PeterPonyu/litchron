@@ -113,8 +113,15 @@ def _build_annotation_figure(run_id: str) -> None:
     state = _read_state(run_id)
     target = run_dir(run_id)
     label_map, rank_map, confidence_map = _read_proposal_maps(target)
+    # Pass state.adata_deltas so the cache replays recorded deltas (X_umap,
+    # leiden, etc.) back into adata. Without this, runs whose embeddings
+    # live only in zarr deltas (e.g. after recompute_embeddings in a prior
+    # process) load as the bare h5ad and the audit fails on missing obsm.
     with _CACHE.with_adata(
-        run_id=run_id, h5ad_path=state.h5ad_path, run_dir=target
+        run_id=run_id,
+        h5ad_path=state.h5ad_path,
+        run_dir=target,
+        deltas=getattr(state, "adata_deltas", None),
     ) as adata:
         make_litchron_annotation_figure(
             adata=adata,
@@ -177,7 +184,10 @@ def _build_comparison_strip(run_id: str) -> None:
         return
 
     with _CACHE.with_adata(
-        run_id=run_id, h5ad_path=state.h5ad_path, run_dir=target
+        run_id=run_id,
+        h5ad_path=state.h5ad_path,
+        run_dir=target,
+        deltas=getattr(state, "adata_deltas", None),
     ) as adata:
         make_pseudotime_comparison_strip(
             adata=adata,
