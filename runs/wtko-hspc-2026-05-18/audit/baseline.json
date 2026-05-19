@@ -1,33 +1,11 @@
 {
   "annotation": [
     {
-      "type": "colorblind_confusable",
-      "severity": "warning",
-      "detail": "colors 'patch: unlabeled' and 'patch: unlabeled' collapse under deuteranopia (\u0394E\u2087\u2086 = 10.8 < 12.0)",
-      "elements": [
-        "patch: unlabeled",
-        "patch: unlabeled"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 1
-    },
-    {
-      "type": "colorblind_confusable",
-      "severity": "warning",
-      "detail": "colors 'patch: unlabeled' and 'patch: unlabeled' collapse under protanopia (\u0394E\u2087\u2086 = 11.3 < 12.0)",
-      "elements": [
-        "patch: unlabeled",
-        "patch: unlabeled"
-      ],
-      "severity_level": "MAJOR",
-      "figure_num": 1
-    },
-    {
       "type": "font_family_violation",
       "severity": "warning",
-      "detail": "35 text(s) use non-standard font: 'LitChron annotation -- 10' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +32 more",
+      "detail": "35 text(s) use non-standard font: 'LitChron annotation \u2014 10,' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +32 more",
       "elements": [
-        "'LitChron annotation -- 10' uses serif",
+        "'LitChron annotation \u2014 10,' uses serif",
         "'UMAP$_1$' uses serif",
         "'UMAP$_2$' uses serif",
         "'0' uses serif",
@@ -39,10 +17,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle(cluster_3)' (2832 px\u00b2)",
       "elements": [
         "annotation: 1",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_3)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -50,10 +28,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle(cluster_5)' (2832 px\u00b2)",
       "elements": [
         "annotation: 1",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_5)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -61,10 +39,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle(cluster_0)' (2840 px\u00b2)",
       "elements": [
         "annotation: 3",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_0)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -72,10 +50,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle(cluster_1)' (2840 px\u00b2)",
       "elements": [
         "annotation: 3",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_1)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -83,10 +61,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle(cluster_7)' (2840 px\u00b2)",
       "elements": [
         "annotation: 3",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_7)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -94,10 +72,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle(cluster_2)' (2832 px\u00b2)",
       "elements": [
         "annotation: 4",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_2)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -105,10 +83,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle(cluster_4)' (2832 px\u00b2)",
       "elements": [
         "annotation: 4",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_4)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -116,10 +94,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_6)' (2840 px\u00b2)",
       "elements": [
         "annotation: 5",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_6)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -127,10 +105,10 @@
     {
       "type": "annotation_data_overlap",
       "severity": "info",
-      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_8)' (2840 px\u00b2)",
       "elements": [
         "annotation: 5",
-        "patch: Rectangle"
+        "patch: Rectangle(cluster_8)"
       ],
       "severity_level": "MINOR",
       "figure_num": 1
@@ -141,16 +119,6 @@
       "detail": "22 text(s) use bold fontweight",
       "elements": [],
       "severity_level": "INFO",
-      "figure_num": 1
-    },
-    {
-      "type": "colorblind_confusable",
-      "severity": "info",
-      "detail": "In 'ax@0x717b4149f890': 1 colour pair(s) may be confusable under deuteranopia: 'patch' vs 'patch' (\u0394E=8.2)",
-      "elements": [
-        "'patch' vs 'patch' (\u0394E=8.2)"
-      ],
-      "severity_level": "MAJOR",
       "figure_num": 1
     }
   ],
