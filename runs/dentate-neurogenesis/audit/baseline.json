@@ -1,0 +1,219 @@
+{
+  "annotation": [
+    {
+      "type": "font_family_violation",
+      "severity": "warning",
+      "detail": "56 text(s) use non-standard font: 'LitChron annotation \u2014 18,' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +53 more",
+      "elements": [
+        "'LitChron annotation \u2014 18,' uses serif",
+        "'UMAP$_1$' uses serif",
+        "'UMAP$_2$' uses serif",
+        "'5' uses serif",
+        "'10' uses serif"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "legend_artist_masking",
+      "severity": "warning",
+      "detail": "Legend masks 'title: Cluster palette \u00b7 ordered by inferred rank (swatch' (5%, 9080 px\u00b2)",
+      "elements": [
+        "legend_box",
+        "title: Cluster palette \u00b7 ordered by inferred rank (swatch"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "legend_truncation",
+      "severity": "warning",
+      "detail": "'legend_box' extends beyond figure border (top, 99px)",
+      "elements": [
+        "legend_box"
+      ],
+      "is_fig_level": false,
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "legend_truncation",
+      "severity": "warning",
+      "detail": "Legend in axes extends beyond figure (top)",
+      "elements": [
+        "legend"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_0)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_0)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_1)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_1)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_10)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_10)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle(cluster_5)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle(cluster_5)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 6' overlaps content 'patch: Rectangle(cluster_3)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 6",
+        "patch: Rectangle(cluster_3)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 6' overlaps content 'patch: Rectangle(cluster_6)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 6",
+        "patch: Rectangle(cluster_6)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 7' overlaps content 'patch: Rectangle(cluster_11)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 7",
+        "patch: Rectangle(cluster_11)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 7' overlaps content 'patch: Rectangle(cluster_7)' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 7",
+        "patch: Rectangle(cluster_7)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 8' overlaps content 'patch: Rectangle(cluster_2)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 8",
+        "patch: Rectangle(cluster_2)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 8' overlaps content 'patch: Rectangle(cluster_4)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 8",
+        "patch: Rectangle(cluster_4)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 8' overlaps content 'patch: Rectangle(cluster_8)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 8",
+        "patch: Rectangle(cluster_8)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 8' overlaps content 'patch: Rectangle(cluster_9)' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 8",
+        "patch: Rectangle(cluster_9)"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "bold_usage",
+      "severity": "info",
+      "detail": "34 text(s) use bold fontweight",
+      "elements": [],
+      "severity_level": "INFO",
+      "figure_num": 1
+    },
+    {
+      "type": "panel_complexity_excess",
+      "severity": "info",
+      "detail": "Panel 'ax@0x7235c2f80410' complexity score 15.0 (threshold 15.0): 20 legend entries (>10). Consider simplifying or splitting.",
+      "elements": [
+        "panel:ax@0x7235c2f80410"
+      ],
+      "score": 15.0,
+      "reasons": [
+        "20 legend entries (>10)"
+      ],
+      "n_legend": 20,
+      "n_numeric": 0,
+      "n_text": 0,
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "text_artist_overlap",
+      "severity": "info",
+      "detail": "Text 'legend_text: r\u2014 \u00b7 c17  (n=349)' overlaps content 'patch: Spine' (9302 px\u00b2)",
+      "elements": [
+        "legend_text: r\u2014 \u00b7 c17  (n=349)",
+        "patch: Spine"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    }
+  ],
+  "comparison_strip": []
+}
