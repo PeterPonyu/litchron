@@ -347,7 +347,17 @@ def make_pseudotime_comparison_strip(
 
     n_panels = len(pts_named)
     fig_w = max(4.5, 4.5 * n_panels)
-    fig, axes = plt.subplots(1, n_panels, figsize=(fig_w, 4.0),
+    # Three publication-quality settings stacked here:
+    #   - dpi=300 keeps effective DPI above scivcd's threshold.
+    #   - figsize height 5.0 (was 4.0) gives the 22pt suptitle from
+    #     _apply_serif_style enough vertical room to not crowd the 20pt
+    #     subplot titles.
+    #   - layout="constrained" is matplotlib's modern auto-spacer; it
+    #     coexists cleanly with savefig.bbox="tight" (set in
+    #     _apply_serif_style) where the older tight_layout / subplots_adjust
+    #     pair gets overridden by savefig's bbox recompute.
+    fig, axes = plt.subplots(1, n_panels, figsize=(fig_w, 5.0), dpi=300,
+                              layout="constrained",
                               gridspec_kw={"wspace": 0.4})
     if n_panels == 1:
         axes = [axes]
@@ -371,6 +381,10 @@ def make_pseudotime_comparison_strip(
             spine.set_visible(False)
         plt.colorbar(sc_obj, ax=ax, fraction=0.046, pad=0.04)
 
+    # constrained_layout (set on plt.subplots above) takes ownership of
+    # suptitle placement and subplot spacing — no manual subplots_adjust
+    # or tight_layout needed. This is what kills the scivcd text_overlap
+    # MAJORs between subplot titles and the suptitle.
     fig.suptitle("LitChron vs classical baselines (per-cell pseudotime overlays)")
     fig.savefig(out_path, dpi=300)
     plt.close(fig)
