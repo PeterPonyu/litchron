@@ -1,0 +1,16 @@
+repos:
+  - repo: local
+    hooks:
+      - id: scivcd-audit-headline-figure
+        name: scivcd audit (litchron headline figures)
+        # Run the audit, then re-emit its exit code so pre-commit blocks on
+        # CRITICAL regressions (exit 1) or --strict MAJOR regressions (exit 2).
+        # On success (exit 0), auto-stage any baseline.json deltas so the bless
+        # lives in the same commit as the figure change. The `2>/dev/null`
+        # suppresses git-add's "pathspec did not match" noise on first runs
+        # before audit/ exists; `exit $ec` is the gate that pre-commit reads.
+        entry: bash -c 'conda run -n dl python scripts/audit_figures.py; ec=$?; [ $ec -eq 0 ] && git add -u runs/*/audit/baseline.json 2>/dev/null; exit $ec'
+        language: system
+        pass_filenames: false
+        files: ^litchron/figures\.py$
+        stages: [pre-commit]

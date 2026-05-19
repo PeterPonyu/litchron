@@ -1,0 +1,254 @@
+{
+  "annotation": [
+    {
+      "type": "colorblind_confusable",
+      "severity": "warning",
+      "detail": "colors 'patch: unlabeled' and 'patch: unlabeled' collapse under deuteranopia (\u0394E\u2087\u2086 = 10.8 < 12.0)",
+      "elements": [
+        "patch: unlabeled",
+        "patch: unlabeled"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "colorblind_confusable",
+      "severity": "warning",
+      "detail": "colors 'patch: unlabeled' and 'patch: unlabeled' collapse under protanopia (\u0394E\u2087\u2086 = 11.3 < 12.0)",
+      "elements": [
+        "patch: unlabeled",
+        "patch: unlabeled"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "font_family_violation",
+      "severity": "warning",
+      "detail": "35 text(s) use non-standard font: 'LitChron annotation -- 10' uses serif; 'UMAP$_1$' uses serif; 'UMAP$_2$' uses serif ... +32 more",
+      "elements": [
+        "'LitChron annotation -- 10' uses serif",
+        "'UMAP$_1$' uses serif",
+        "'UMAP$_2$' uses serif",
+        "'0' uses serif",
+        "'4' uses serif"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 1",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 1' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 1",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 3",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 3",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 3' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 3",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 4",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 4' overlaps content 'patch: Rectangle' (2832 px\u00b2)",
+      "elements": [
+        "annotation: 4",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "annotation_data_overlap",
+      "severity": "info",
+      "detail": "Text 'annotation: 5' overlaps content 'patch: Rectangle' (2840 px\u00b2)",
+      "elements": [
+        "annotation: 5",
+        "patch: Rectangle"
+      ],
+      "severity_level": "MINOR",
+      "figure_num": 1
+    },
+    {
+      "type": "bold_usage",
+      "severity": "info",
+      "detail": "22 text(s) use bold fontweight",
+      "elements": [],
+      "severity_level": "INFO",
+      "figure_num": 1
+    },
+    {
+      "type": "colorblind_confusable",
+      "severity": "info",
+      "detail": "In 'ax@0x717b4149f890': 1 colour pair(s) may be confusable under deuteranopia: 'patch' vs 'patch' (\u0394E=8.2)",
+      "elements": [
+        "'patch' vs 'patch' (\u0394E=8.2)"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 1
+    }
+  ],
+  "comparison_strip": [
+    {
+      "type": "effective_dpi_low",
+      "severity": "warning",
+      "detail": "effective DPI at rendered width 7.0in is 193 (fig_dpi=100.0, fig_width=13.5in); below 300",
+      "elements": [
+        "figure"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 2
+    },
+    {
+      "type": "font_family_violation",
+      "severity": "warning",
+      "detail": "22 text(s) use non-standard font: 'LitChron LLM' uses serif; 'paga' uses serif; 'scvelo' uses serif ... +19 more",
+      "elements": [
+        "'LitChron LLM' uses serif",
+        "'paga' uses serif",
+        "'scvelo' uses serif",
+        "'0.0' uses serif",
+        "'0.2' uses serif"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 2
+    },
+    {
+      "type": "text_overlap",
+      "severity": "warning",
+      "detail": "'title: LitChron LLM' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
+      "elements": [
+        "title: LitChron LLM",
+        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 2
+    },
+    {
+      "type": "text_overlap",
+      "severity": "warning",
+      "detail": "'title: paga' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
+      "elements": [
+        "title: paga",
+        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 2
+    },
+    {
+      "type": "text_overlap",
+      "severity": "warning",
+      "detail": "'title: scvelo' overlaps 'suptitle: LitChron vs classical baselines (per-cell pseudoti'",
+      "elements": [
+        "title: scvelo",
+        "suptitle: LitChron vs classical baselines (per-cell pseudoti"
+      ],
+      "severity_level": "MAJOR",
+      "figure_num": 2
+    },
+    {
+      "type": "bold_usage",
+      "severity": "info",
+      "detail": "4 text(s) use bold fontweight",
+      "elements": [],
+      "severity_level": "INFO",
+      "figure_num": 2
+    },
+    {
+      "type": "overplotted_scatter",
+      "severity": "info",
+      "detail": "Scatter in 'LitChron LLM' has 10,224 points (\u03b1=0.90) \u2014 consider hexbin or KDE for readability",
+      "elements": [
+        "scatter:LitChron LLM"
+      ],
+      "severity_level": "INFO",
+      "figure_num": 2
+    },
+    {
+      "type": "overplotted_scatter",
+      "severity": "info",
+      "detail": "Scatter in 'paga' has 10,224 points (\u03b1=0.90) \u2014 consider hexbin or KDE for readability",
+      "elements": [
+        "scatter:paga"
+      ],
+      "severity_level": "INFO",
+      "figure_num": 2
+    },
+    {
+      "type": "overplotted_scatter",
+      "severity": "info",
+      "detail": "Scatter in 'scvelo' has 10,224 points (\u03b1=0.90) \u2014 consider hexbin or KDE for readability",
+      "elements": [
+        "scatter:scvelo"
+      ],
+      "severity_level": "INFO",
+      "figure_num": 2
+    }
+  ]
+}

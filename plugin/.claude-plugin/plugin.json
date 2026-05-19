@@ -1,0 +1,9 @@
+{
+  "name": "litchron-audit",
+  "description": "Bundles litchron's pipeline MCP with scivcd's audit MCP and exposes the /audit-litchron-run orchestration skill for end-to-end figure auditing within a litchron run.",
+  "version": "0.1.0",
+  "author": {
+    "name": "litchron contributors"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,100 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Encoding and fonts ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+% --- Geometry: wider text block + tighter top margin (no title page) ---
+\usepackage[top=1.8cm,bottom=2cm,left=2cm,right=2cm]{geometry}
+
+% --- URL line-breaking BEFORE hyperref so DOIs in citations wrap ---
+\usepackage[hyphens]{url}
+
+% --- Bibliography (biblatex + biber) ---
+\usepackage[backend=biber,style=authoryear,sorting=nyt,maxbibnames=6]{biblatex}
+% \runDir is injected via latexmk -usepretex='\def\runDir{runs/<run_id>}'
+\IfFileExists{\runDir/references.bib}{%
+  \addbibresource{\runDir/references.bib}%
+}{}
+
+% --- Tables, figures, links ---
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,breaklinks=true]{hyperref}
+
+% --- Math ---
+\usepackage{amsmath}
+
+% --- Robust line breaking for long unbreakable strings ---
+\setlength{\emergencystretch}{3em}
+\hbadness=10000
+\sloppy
+
+% --- Default longtable to footnotesize so wide tables stay in margins ---
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\footnotesize}
+
+% --- Cap any \includegraphics that pandoc emits at \textwidth. ---
+\setkeys{Gin}{width=\textwidth,keepaspectratio}
+
+% --- Pandoc 3.x wraps figures with \pandocbounded{...}; provide a no-op stub. ---
+\providecommand{\pandocbounded}[1]{#1}
+
+% --- Pandoc emits \tightlist for compact bullet lists; provide a stub. ---
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% --- Auto-cite all entries in references.bib so the bibliography is
+%     populated even though we don't \cite{} keys inline. ---
+\nocite{*}
+
+% --- PDF metadata: avoid leaking the local run path in document properties. ---
+\hypersetup{
+  pdftitle={LitChron Annotation Report},
+  pdfauthor={LitChron MCP Server},
+  pdfsubject={Single-cell pseudotime annotation},
+  pdfkeywords={LitChron, single-cell, pseudotime, LLM, annotation},
+}
+
+\begin{document}
+
+% Compact heading instead of a dedicated title page — no whitespace waste,
+% no filesystem path exposure.
+\begin{center}
+{\Large\bfseries LitChron Annotation Report}\\[2pt]
+{\small\itshape Single-cell pseudotime annotated by LLM, supporting
+literature verified against CrossRef}\\[1pt]
+{\footnotesize \today}
+\end{center}
+\vspace{4pt}
+
+% 1. Observations — cluster markers from the recomputed embedding.
+\IfFileExists{\runDir/tex_sections/observations.tex}{%
+  \input{\runDir/tex_sections/observations}%
+}{%
+  \section{Dataset Observations}\textit{Observations section not yet generated.}%
+}
+
+% 2. LitChron Annotation — the headline single-panel UMAP figure.
+\IfFileExists{\runDir/tex_sections/annotation.tex}{%
+  \input{\runDir/tex_sections/annotation}%
+}{}
+
+% 3. References — placed immediately after the figure so the supporting
+%    literature sits with the biological claims it underpins.
+\printbibliography[heading=bibintoc,title={References}]
+
+% 4. LLM Proposal — per-cell-type ranking table.
+\IfFileExists{\runDir/tex_sections/proposals.tex}{%
+  \input{\runDir/tex_sections/proposals}%
+}{%
+  \section{LLM-Proposed Pseudotime Ordering}\textit{Proposals section not yet generated.}%
+}
+
+% 5. LitChron LLM Pseudotime — per-cell continuous pseudotime summary.
+\IfFileExists{\runDir/tex_sections/litchron_ordering.tex}{%
+  \input{\runDir/tex_sections/litchron_ordering}%
+}{}
+
+\end{document}

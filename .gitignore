@@ -1,0 +1,36 @@
+# Ignore the runs/ tree by default — experiment outputs (figures, parquets,
+# LaTeX artifacts, h5ad caches) are not source. EXCEPTION: per the scivcd
+# interop governance design, runs/<run_id>/audit/baseline.json must be
+# committable so the pre-commit hook can auto-stage non-CRITICAL deltas in
+# the same commit as the figure change. Git requires cascading negations to
+# re-include a file once any parent has been excluded.
+runs/*
+!runs/*/
+runs/*/*
+!runs/*/audit/
+runs/*/audit/*
+!runs/*/audit/baseline.json
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.aux
+*.log
+*.synctex.gz
+.cache/
+*.egg-info/
+dist/
+build/
+.coverage
+
+# OMC session ephemera. The spec/plan artifacts under .omc/specs/ and
+# .omc/plans/ are deliverables and stay tracked; everything else regenerates
+# from session state.
+.omc/state/
+.omc/handoffs/
+.omc/sessions/
+.omc/__pycache__/
+.omc/notepad.md
+.omc/project-memory.json
+.omc/scivcd_audit_driver.py
+

@@ -1,0 +1,67 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "litchron"
+version = "0.1.0"
+description = "LLM-grounded single-cell chronology with verified literature citations"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "httpx>=0.27",
+    "pydantic>=2",
+    "anndata",
+    "scanpy",
+    "zarr",
+    "sentence-transformers",
+    "mcp>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+]
+audit = [
+    "scivcd==0.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["litchron", "mcp_litchron"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = [
+    "scanpy.*",
+    "anndata.*",
+    "scvelo.*",
+    "palantir.*",
+    "rpy2.*",
+    "pyslingshot.*",
+    "mcp.*",
+    "sentence_transformers.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+markers = [
+    "live_llm: tests that invoke a real LLM session (gated by LITCHRON_RUN_LIVE_E2E=1)",
+    "r_baseline: tests that require a working R installation with Monocle3/Slingshot",
+    "integration: integration tests requiring real data or external services",
+    "e2e: end-to-end tests covering the full MCP-driven pipeline",
+]

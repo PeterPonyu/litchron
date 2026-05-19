@@ -1,0 +1,43 @@
+name: dl
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Python runtime (reuse existing dl env pin)
+  - python>=3.11,<3.13
+  # R bridge (required for Monocle3 / Slingshot-R baselines)
+  - rpy2>=3.5
+  - r-base>=4.1
+  # Graph / community detection (scanpy leiden clustering)
+  - python-igraph
+  - leidenalg
+  # Single-cell trajectory inference (Python-native)
+  - palantir
+  - scvelo
+  - pyslingshot
+  # Core scientific stack (extends dl env)
+  - numpy
+  - pandas
+  - pyarrow
+  - zarr
+  # Sentence embeddings for citation cosine verification
+  - sentence-transformers
+  # AnnData / scanpy (already in dl; pinned here for env reproducibility)
+  - anndata
+  - scanpy
+  # HTTP client for CrossRef / PubMed lookups
+  - httpx>=0.27
+  # MCP Python SDK (stdio server)
+  - pip
+  - pip:
+      - mcp>=1.0
+      - pydantic>=2
+      - litchron  # editable install handled by `pip install -e .` after env create
+
+# System dependencies (install separately via apt):
+#   sudo apt install pandoc latexmk texlive-latex-extra
+#
+# These are not conda-installable on all systems. pandoc>=3 and
+# latexmk are validated at server startup by litchron/preflight.py.
+# On systems where conda-forge pandoc is preferred, add:
+#   - conda-forge::pandoc>=3
