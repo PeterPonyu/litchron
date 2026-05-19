@@ -1957,38 +1957,41 @@ def _check_deps_pinned() -> bool:
         return False
 
 
-def emit_figure_script(inp: EmitFigureScriptInput) -> dict[str, Any]:
-    """Emit a self-contained driver script that builds a named figure into pyplot state.
+def emit_figure_script(
+    run_id: str,
+    figure_name: Literal["annotation", "comparison_strip"],
+) -> dict[str, Any]:
+    """Emit a driver script that builds one figure into pyplot state. Args: run_id (str), figure_name ('annotation' or 'comparison_strip'). Returns {script_path, figure_name, deps_pinned}.
 
     The emitted script is written to ``<run_dir>/scripts/audit_<figure_name>.py``.
     scivcd's runner can execute it via ``importlib.util.spec_from_file_location``
     and pick up the resulting figure via ``plt.get_fignums()``.
 
-    Returns ``{script_path, figure_name, deps_pinned}`` on success, or an
-    ``ErrorResult`` dict on failure.
+    The MCP dispatcher unpacks JSON-RPC arguments as ``fn(**arguments)``, so
+    callers MUST pass ``run_id`` and ``figure_name`` as flat keyword arguments,
+    NOT wrapped in an ``inp`` envelope. Validation still flows through the
+    :class:`EmitFigureScriptInput` model internally for shape consistency.
     """
     try:
-        if not isinstance(inp, EmitFigureScriptInput):
-            inp = EmitFigureScriptInput.model_validate(inp)
+        validated = EmitFigureScriptInput(run_id=run_id, figure_name=figure_name)
+        validate_run_id(validated.run_id)
 
-        validate_run_id(inp.run_id)
-
-        target = Path(run_dir(inp.run_id))
+        target = Path(run_dir(validated.run_id))
         scripts_dir = target / "scripts"
         scripts_dir.mkdir(parents=True, exist_ok=True)
 
-        script_path = scripts_dir / f"audit_{inp.figure_name}.py"
+        script_path = scripts_dir / f"audit_{validated.figure_name}.py"
 
-        if inp.figure_name == "annotation":
-            content = _ANNOTATION_DRIVER_TEMPLATE.format(run_id=inp.run_id)
+        if validated.figure_name == "annotation":
+            content = _ANNOTATION_DRIVER_TEMPLATE.format(run_id=validated.run_id)
         else:
-            content = _COMPARISON_STRIP_DRIVER_TEMPLATE.format(run_id=inp.run_id)
+            content = _COMPARISON_STRIP_DRIVER_TEMPLATE.format(run_id=validated.run_id)
 
         script_path.write_text(content)
 
         return {
             "script_path": str(script_path),
-            "figure_name": inp.figure_name,
+            "figure_name": validated.figure_name,
             "deps_pinned": _check_deps_pinned(),
         }
     except Exception as e:  # noqa: BLE001

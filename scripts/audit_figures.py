@@ -241,6 +241,40 @@ def _finding_key(finding: dict) -> tuple[str, str, str]:
     )
 
 
+# Schema version for findings.json envelope. Bump when the on-disk shape
+# changes in a way that's not backward-compatible with prior readers.
+FINDINGS_SCHEMA_VERSION = "1"
+
+
+def _make_findings_envelope(
+    run_id: str,
+    figure_name: str,
+    audit_source: str,
+    issues: list[dict],
+) -> dict:
+    """Wrap a list of scivcd findings in the canonical on-disk envelope.
+
+    Both the CI path (this script) and the skill path (/audit-litchron-run via
+    the plugin) MUST write this exact shape so consumers can read either
+    without branching. ``audit_source`` is the only field that differs:
+    ``"ci"`` here, ``"skill"`` from the orchestration skill.
+    """
+    counts = Counter(str(i.get("severity_level", "INFO")) for i in issues)
+    return {
+        "schema_version": FINDINGS_SCHEMA_VERSION,
+        "run_id": run_id,
+        "figure_name": figure_name,
+        "audit_source": audit_source,
+        "counts": {
+            "CRITICAL": counts.get("CRITICAL", 0),
+            "MAJOR": counts.get("MAJOR", 0),
+            "MINOR": counts.get("MINOR", 0),
+            "INFO": counts.get("INFO", 0),
+        },
+        "issues": issues,
+    }
+
+
 def _write_audit_artifacts(
     run_id: str,
     findings_by_figure: dict[str, list[dict]],
@@ -249,15 +283,26 @@ def _write_audit_artifacts(
 
     Returns the loaded (or freshly written) baseline dict so the caller can
     compute the delta.
+
+    Per-figure findings.json files use the canonical envelope (see
+    ``_make_findings_envelope``). baseline.json keeps its own flat-by-figure
+    shape (``{figure_name: [issues]}``) because it's a multi-figure record
+    used only by the delta calculator, not by external consumers.
     """
     audit_dir = run_dir(run_id) / "audit"
     audit_dir.mkdir(parents=True, exist_ok=True)
 
-    # Write per-figure findings files.
+    # Write per-figure findings files in the canonical envelope shape.
     for figure_name, findings in findings_by_figure.items():
+        envelope = _make_findings_envelope(
+            run_id=run_id,
+            figure_name=figure_name,
+            audit_source="ci",
+            issues=findings,
+        )
         findings_path = audit_dir / f"{figure_name}.findings.json"
         findings_path.write_text(
-            json.dumps(findings, indent=2, default=str), encoding="utf-8"
+            json.dumps(envelope, indent=2, default=str), encoding="utf-8"
         )
 
     baseline_path = audit_dir / "baseline.json"

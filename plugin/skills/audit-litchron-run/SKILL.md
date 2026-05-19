@@ -98,7 +98,7 @@ mcp__scivcd__audit_details(session_id=<session_id>, figure_index=0, severity_flo
 
 Read each issue's `type`, `severity_level`, `detail`, and `elements`. Translate each to a one-line "what's wrong + suggested fix" for the user — do not dump raw dicts.
 
-**3c. Write findings to run_dir:**
+**3c. Write findings to run_dir using the canonical envelope:**
 
 Determine `run_dir` from the `run_id` (litchron stores runs under its configured run directory). Write findings to:
 
@@ -106,7 +106,31 @@ Determine `run_dir` from the `run_id` (litchron stores runs under its configured
 <run_dir>/audit/<figure_name>.findings.json
 ```
 
-The findings JSON shape follows scivcd's existing `audit_details` response — store the `issues` array plus metadata (`run_id`, `figure_name`, `session_id`, `critical`, `major`, `minor`, `info` counts).
+The on-disk shape MUST be the canonical envelope below — identical to what `scripts/audit_figures.py` writes from CI (see `_make_findings_envelope` in that file). Both paths writing the same shape lets downstream consumers read either without branching:
+
+```json
+{
+  "schema_version": "1",
+  "run_id": "<run_id>",
+  "figure_name": "<figure_name>",
+  "audit_source": "skill",
+  "counts": {
+    "CRITICAL": <int>,
+    "MAJOR": <int>,
+    "MINOR": <int>,
+    "INFO": <int>
+  },
+  "issues": [<finding>, <finding>, ...]
+}
+```
+
+Field rules:
+- `schema_version`: always the string `"1"` for this contract version.
+- `audit_source`: always `"skill"` from this path; the CI script writes `"ci"`. This is the only field that differs between the two writers.
+- `counts`: sum per severity from the `audit_details` response.
+- `issues`: scivcd's flat findings list verbatim (every item has `type`, `severity_level`, `detail`, `elements`, `figure_num`).
+
+Do not invent extra keys or rename anything. If you need to capture the `session_id` for traceability, log it in your final summary message — do not add it to the envelope.
 
 ### Step 4 — Baseline management
 
@@ -147,16 +171,18 @@ mcp__scivcd__end_session(session_id=<session_id>)
 
 Call `end_session` for every session opened, even if an earlier step failed. Response: `{ok, status, deferred}`.
 
-## Acceptance
+## Acceptance — REQUIRED final assistant message
 
-At completion, return a summary object to the user:
+After **all** MCP calls finish (every `end_session` returned, all findings files written), you MUST emit a **plain-text assistant message** containing the summary JSON below. Do not end the turn on a tool call. This message is what headless `--print` / `-p` mode returns to the caller; if it is missing, `result` will be empty and the user cannot consume the audit even though every side effect succeeded.
+
+Format the final message exactly like this (the JSON inside a fenced code block, optionally followed by a 1-2 sentence interpretation):
 
 ```json
 {
   "run_id": "<run_id>",
   "figures_audited": ["annotation", "comparison_strip"],
-  "critical_count": <total CRITICAL issues across all figures>,
-  "major_count": <total MAJOR issues across all figures>,
+  "critical_count": <total CRITICAL across all figures>,
+  "major_count": <total MAJOR across all figures>,
   "baseline_status": "created" | "delta_non_critical" | "delta_critical_regression" | "unchanged",
   "findings_paths": [
     "<run_dir>/audit/annotation.findings.json",
@@ -164,6 +190,8 @@ At completion, return a summary object to the user:
   ]
 }
 ```
+
+After the JSON, you may add at most 2-3 sentences of interpretation. Do not produce any other text. Do not silently end the turn.
 
 `baseline_status` values:
 - `"created"` — no prior baseline existed; one was saved from this run
