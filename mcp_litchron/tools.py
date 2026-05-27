@@ -298,6 +298,18 @@ def start_run(
     When to call: once per dataset, before any other tool.
     Idempotent: no (unless ``force=True`` is passed).
     Expected next tool: ``load_h5ad``.
+
+    Force-restart behavior
+    ----------------------
+    When ``force=True`` and the target run directory is non-empty, the
+    existing contents (proposals.md, figures/, baselines/, references.bib,
+    state.json, etc.) are first **moved** into
+    ``<run_dir>/_archive/<UTC-timestamp>/`` and a fresh skeleton plus
+    ``state.json`` are then written into the now-empty run directory. The
+    archive subtree itself is excluded from the move, so repeated
+    ``force=True`` calls accumulate one timestamped archive per restart
+    rather than nesting archives inside archives. Archiving (instead of
+    deletion) keeps prior runs recoverable for debugging.
     """
     try:
         # 1) Resolve and validate run_id (auto-generate if omitted).
@@ -330,6 +342,31 @@ def start_run(
                 ),
                 retryable=False,
             )
+
+        # 3a) If we're force-restarting a non-empty run dir, sweep the
+        # existing contents into a timestamped archive subdirectory so
+        # stale proposals.md / figures / baselines / state.json cannot
+        # leak into the new report. Archiving (instead of deletion) keeps
+        # prior runs recoverable for debugging.
+        if existing and force:
+            import shutil
+
+            archive_root = target / "_archive"
+            archive_root.mkdir(exist_ok=True)
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            archive_dir = archive_root / stamp
+            # In the (vanishingly unlikely) event of a timestamp collision,
+            # append a numeric suffix until we find an unused name.
+            suffix = 0
+            while archive_dir.exists():
+                suffix += 1
+                archive_dir = archive_root / f"{stamp}-{suffix}"
+            archive_dir.mkdir()
+            for entry in list(target.iterdir()):
+                # Never recurse the archive root into itself.
+                if entry == archive_root:
+                    continue
+                shutil.move(str(entry), str(archive_dir / entry.name))
 
         # 4) Create the skeleton directories.
         target.mkdir(parents=True, exist_ok=True)
