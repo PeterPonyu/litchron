@@ -42,13 +42,17 @@ hybrid execution.
 """
 from __future__ import annotations
 
+import inspect
 import json
 import sys
+import typing
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from pydantic import BaseModel
+
 from litchron.preflight import PreflightReport, check_environment
-from mcp_litchron.errors import PreflightFailure
+from mcp_litchron.errors import ErrorResult, PreflightFailure
 from mcp_litchron.tools import TOOL_REGISTRY
 
 # ---------------------------------------------------------------------------
@@ -144,11 +148,225 @@ def build_registry() -> ToolRegistry:
 
 
 # ---------------------------------------------------------------------------
+# Input-schema derivation
+# ---------------------------------------------------------------------------
+# Minimal Python-type -> JSON-Schema mapping. This is intentionally tiny;
+# unknown / complex types fall through to ``"type": "string"`` because the
+# MCP contract still keeps ``additionalProperties: true`` and the tool
+# layer validates payloads via Pydantic anyway. The goal is to publish
+# something better than "object with arbitrary fields" so MCP clients
+# (and any UI that introspects the schema) know which kwargs are required.
+_PRIMITIVE_TYPE_MAP: dict[Any, str] = {
+    str: "string",
+    int: "integer",
+    float: "number",
+    bool: "boolean",
+}
+
+
+def _python_type_to_json_schema(annotation: Any) -> dict[str, Any]:
+    """Return a minimal JSON-Schema fragment for ``annotation``.
+
+    Strategy:
+    - ``inspect.Parameter.empty`` -> no constraint (return empty dict).
+    - Primitive ``str/int/float/bool`` -> the obvious JSON type.
+    - ``list[...]`` -> ``{"type": "array"}``.
+    - ``dict[...]`` -> ``{"type": "object"}``.
+    - Pydantic model subclass -> ``model_json_schema()`` so the published
+      schema reflects the real field structure (e.g. ``OrderingProposal``).
+    - ``Optional[T]`` -> the schema for ``T`` (we drop the None branch;
+      "required" handling at the parent level conveys nullability).
+    - Anything else -> ``{"type": "string"}``.
+    """
+    if annotation is inspect.Parameter.empty:
+        return {}
+
+    # Pydantic BaseModel subclass: prefer its own JSON schema.
+    if isinstance(annotation, type) and issubclass(annotation, BaseModel):
+        try:
+            return annotation.model_json_schema()  # type: ignore[no-any-return]
+        except Exception:  # noqa: BLE001 — defensive; fall back to object
+            return {"type": "object"}
+
+    # Primitives.
+    if annotation in _PRIMITIVE_TYPE_MAP:
+        return {"type": _PRIMITIVE_TYPE_MAP[annotation]}
+
+    origin = typing.get_origin(annotation)
+    args = typing.get_args(annotation)
+
+    # Optional[T] / Union[T, None] -> schema for T (we don't model nullability
+    # via "null" type — required-ness at the parent level conveys it).
+    if origin is typing.Union:
+        non_none = [a for a in args if a is not type(None)]
+        if len(non_none) == 1:
+            return _python_type_to_json_schema(non_none[0])
+        # Genuine multi-branch unions are rare in this surface; fall through.
+        return {"type": "string"}
+
+    # Literal[...] -> enum of the same JSON-friendly type.
+    if origin is typing.Literal:
+        values = list(args)
+        # Pick a JSON type from the values' Python types when uniform.
+        py_types = {type(v) for v in values}
+        if py_types == {str}:
+            return {"type": "string", "enum": values}
+        if py_types == {int}:
+            return {"type": "integer", "enum": values}
+        return {"enum": values}
+
+    if origin in (list, tuple, set, frozenset):
+        return {"type": "array"}
+
+    if origin is dict:
+        return {"type": "object"}
+
+    return {"type": "string"}
+
+
+def derive_input_schema(fn: Callable[..., Any]) -> dict[str, Any]:
+    """Derive a JSON-Schema fragment for ``fn``'s keyword arguments.
+
+    Returns an object schema with ``properties`` keyed by parameter name,
+    ``required`` populated with the parameters that have no default, and
+    ``additionalProperties: true`` so the contract stays backward
+    compatible (existing callers that pass extra kwargs still work).
+
+    Annotation resolution: ``typing.get_type_hints`` evaluates string /
+    PEP 563 annotations against the function's module globals so callers
+    written under ``from __future__ import annotations`` still emit the
+    correct JSON-Schema type. If hint evaluation fails (forward references
+    to symbols outside ``fn.__globals__``), each parameter falls back to
+    its raw ``param.annotation``.
+    """
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return {"type": "object", "additionalProperties": True}
+
+    try:
+        hints = typing.get_type_hints(fn)
+    except Exception:  # noqa: BLE001 — forward refs we can't resolve
+        hints = {}
+
+    properties: dict[str, Any] = {}
+    required: list[str] = []
+    for name, param in sig.parameters.items():
+        if param.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            continue
+        annotation = hints.get(name, param.annotation)
+        properties[name] = _python_type_to_json_schema(annotation)
+        if param.default is inspect.Parameter.empty:
+            required.append(name)
+
+    schema: dict[str, Any] = {
+        "type": "object",
+        "properties": properties,
+        "additionalProperties": True,
+    }
+    if required:
+        schema["required"] = required
+    return schema
+
+
+# ---------------------------------------------------------------------------
+# Dispatcher with graceful malformed-call handling
+# ---------------------------------------------------------------------------
+def dispatch_tool_call(
+    registry: ToolRegistry,
+    name: str,
+    arguments: dict[str, Any] | None,
+) -> Any:
+    """Call a registered tool, converting signature-binding errors into ``ErrorResult``.
+
+    Wraps the underlying ``entry.fn(**arguments)`` with two layers:
+
+    1. ``inspect.signature(...).bind(**arguments)`` is called *first* so
+       missing-required and unexpected-kwarg errors are caught structurally
+       (with the offending parameter name in the message) before the tool
+       body runs.
+    2. The actual call is also wrapped in ``try / except TypeError`` so
+       any signature error the bind step missed (e.g. positional-only
+       quirks) still degrades to an :class:`ErrorResult` instead of an
+       exception trace.
+
+    Returns the tool's native return value on success, or an
+    :class:`ErrorResult` for invalid argument shapes. Lookup failures
+    (unknown tool name) also return an :class:`ErrorResult`.
+    """
+    try:
+        entry = registry.get(name)
+    except KeyError:
+        return ErrorResult(
+            code="unknown_tool",
+            message=f"no tool registered under the name {name!r}",
+            hint=(
+                "Call --list-tools or the MCP list_tools endpoint to "
+                "discover the available tool names."
+            ),
+            retryable=False,
+        )
+
+    args = dict(arguments or {})
+    try:
+        sig = inspect.signature(entry.fn)
+        sig.bind(**args)
+    except TypeError as e:
+        return ErrorResult(
+            code="invalid_arguments",
+            message=(
+                f"call to tool {name!r} has invalid arguments: {e}"
+            ),
+            hint=(
+                "Check the tool's inputSchema (list_tools): missing "
+                "required parameters or unexpected kwargs will fail to "
+                "bind to the function signature."
+            ),
+            retryable=False,
+        )
+
+    try:
+        return entry.fn(**args)
+    except TypeError as e:
+        # Catch the residual signature errors that bind() didn't surface
+        # (positional-only oddities, etc.) so they still degrade nicely.
+        return ErrorResult(
+            code="invalid_arguments",
+            message=(
+                f"call to tool {name!r} raised TypeError during dispatch: {e}"
+            ),
+            hint=(
+                "Check the tool's inputSchema (list_tools); the argument "
+                "shape does not match the underlying function signature."
+            ),
+            retryable=False,
+        )
+
+
+# ---------------------------------------------------------------------------
 # CLI: --list-tools
 # ---------------------------------------------------------------------------
+def _list_tools_payload(registry: ToolRegistry) -> list[dict[str, Any]]:
+    """Build the JSON-serializable tool-listing payload (with inputSchemas)."""
+    items: list[dict[str, Any]] = []
+    for name in registry.names():
+        entry = registry.get(name)
+        items.append(
+            {
+                "name": entry.name,
+                "description": entry.description,
+                "inputSchema": derive_input_schema(entry.fn),
+            }
+        )
+    return items
+
+
 def _print_tools_json(registry: ToolRegistry) -> int:
     """Print the registered tools as a JSON array; return exit code."""
-    payload = registry.list_tools()
+    payload = _list_tools_payload(registry)
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
 
@@ -196,17 +414,19 @@ def run_stdio_server(registry: ToolRegistry) -> None:
     async def _list_tools() -> list[Any]:
         return [
             Tool(
-                name=t.name,
-                description=t.description,
-                inputSchema={"type": "object", "additionalProperties": True},
+                name=item["name"],
+                description=item["description"],
+                inputSchema=item["inputSchema"],
             )
-            for t in [registry.get(n) for n in registry.names()]
+            for item in _list_tools_payload(registry)
         ]
 
     @server.call_tool()  # type: ignore[misc]
     async def _call_tool(name: str, arguments: dict[str, Any]) -> list[Any]:
-        entry = registry.get(name)
-        result = entry.fn(**(arguments or {}))
+        # Dispatch through the shared helper so signature-binding errors
+        # become structured ErrorResult payloads instead of TypeError
+        # tracebacks across the MCP boundary.
+        result = dispatch_tool_call(registry, name, arguments)
         # Result models expose .model_dump(); dicts pass through; everything
         # else is rendered via repr for the LLM.
         if hasattr(result, "model_dump"):
@@ -251,6 +471,8 @@ __all__ = [
     "RegisteredTool",
     "ToolRegistry",
     "build_registry",
+    "derive_input_schema",
+    "dispatch_tool_call",
     "run_stdio_server",
     "main",
     "_ensure_preflight",
