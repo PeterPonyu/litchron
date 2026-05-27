@@ -1,6 +1,17 @@
 # LitChron
 
-LitChron is a single-cell chronology system where a terminal LLM agent (Claude Code) acts as a biological oracle: given any AnnData `.h5ad`, the LLM proposes a per-cell-type pseudotime ordering grounded in cited biological publications (DOIs/PMIDs verified against CrossRef and PubMed), while classical trajectory inference methods (Monocle3, Slingshot, PAGA, Palantir, scVelo) run as numerical comparators. The system is exposed as a stdio MCP server driven by Claude Code; the in-session loop terminates when `report_status().all_green == true`. The final deliverable per run is a formally structured LaTeX PDF assembled from intermediate markdown artifacts.
+LitChron is a single-cell chronology system where a terminal LLM agent (Claude Code) acts as a biological oracle: given any AnnData `.h5ad`, the LLM proposes a per-cell-type pseudotime ordering grounded in cited biological publications (DOIs/PMIDs verified against CrossRef and PubMed), while classical trajectory inference methods run as numerical comparators. The system is exposed as a stdio MCP server driven by Claude Code; the in-session loop terminates when `report_status().all_green == true`. The final deliverable per run is a formally structured LaTeX PDF assembled from intermediate markdown artifacts.
+
+## Trajectory baselines: implementation status
+
+| Method        | Backend         | Status                                                                                                                                                                                                              |
+|---------------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| PAGA          | Python (scanpy) | Implemented and runnable.                                                                                                                                                                                           |
+| Palantir      | Python          | Implemented and runnable.                                                                                                                                                                                           |
+| scVelo        | Python          | Implemented and runnable (requires `Ms`/`Mu` or `spliced`/`unspliced` layers).                                                                                                                                      |
+| pyslingshot   | Python          | Implemented and runnable.                                                                                                                                                                                           |
+| **Monocle3**    | R (subprocess) | **Stub-only / not yet implemented.** The real rpy2 path in `litchron/baselines/_r_runner.py` returns the `monocle3_not_implemented` error. A deterministic linear-pseudotime stub is available behind `LITCHRON_STUB_R=1` for exercising the subprocess plumbing without a working R install. Tracking: [issue #5](https://github.com/PeterPonyu/litchron/issues/5). |
+| **Slingshot-R** | R (subprocess) | **Stub-only / not yet implemented.** The real rpy2 path returns the `slingshot_r_not_implemented` error. Same `LITCHRON_STUB_R=1` stub as Monocle3. Tracking: [issue #5](https://github.com/PeterPonyu/litchron/issues/5).                                                                  |
 
 ## Setup
 
