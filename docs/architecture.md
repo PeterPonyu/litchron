@@ -53,7 +53,7 @@ Any signal failure quarantines the citation with a structured reason code. Verif
 ## Markdown → LaTeX Pipeline
 
 1. Claude writes section markdown via `append_section`.
-2. `litchron/sanitize.py` escapes stray `\`, normalises Unicode author names, replaces table width directives.
+2. `litchron/sanitize.py` normalises Unicode dash variants to ASCII `-` outside fenced code blocks **and rejects unsafe raw TeX**. Pandoc is invoked with `--from gfm+tex_math_dollars --to latex`, so any raw TeX in the markdown flows through to `latexmk`. To prevent an LLM-emitted `\input{/etc/passwd}`, `\write18{...}` (shell-escape), `\openout`, `\catcode`, `\def`, `\let`, `\usepackage`, etc. from reaching the LaTeX compiler, the sanitizer raises `litchron.sanitize.UnsafeTexError` (code `unsafe_tex`) when any blocked control sequence appears outside a ` ``` ` fence. Math via `$...$` and `$$...$$` is allowed (that is the purpose of the `tex_math_dollars` extension), and arbitrary raw TeX inside fenced code blocks passes through verbatim since pandoc treats it as prose. The full block list lives in the module docstring of `litchron/sanitize.py`.
 3. `pandoc --from gfm+tex_math_dollars --to latex+raw_tex` converts each section to a `.tex` fragment under `runs/<run_id>/tex_sections/`.
 4. `latexmk -pdf -interaction=nonstopmode -halt-on-error` compiles `tex/litchron.tex`, which `\input`s each fragment. The `\runDir` macro is injected on the command line (`-usepretex='\def\runDir{runs/<run_id>}'`), keeping the template path-agnostic.
 
