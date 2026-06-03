@@ -1,8 +1,8 @@
 """LitChron configuration constants and runtime defaults.
 
 Module-level constants intentionally — these are read-only across the
-process; we don't need Pydantic Settings overhead. Environment overrides,
-if introduced later, can be layered on top by re-binding at import time.
+process; we don't need Pydantic Settings overhead. Select values support
+environment overrides (e.g. ``LITCHRON_CONTACT_EMAIL``), read at import time.
 """
 from __future__ import annotations
 
