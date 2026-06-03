@@ -36,9 +36,10 @@ dependencies:
       # via `pip install -e .` after env creation (it is not published to PyPI).
 
 # System dependencies (install separately via apt):
-#   sudo apt install pandoc latexmk texlive-latex-extra
+#   sudo apt install pandoc latexmk texlive-latex-extra texlive-bibtex-extra biber
 #
-# These are not conda-installable on all systems. pandoc>=3 and
-# latexmk are validated at server startup by litchron/preflight.py.
+# These are not conda-installable on all systems. pandoc>=3, latexmk, and
+# biber (the bibliography backend used by the tex template) are validated at
+# server startup by litchron/preflight.py.
 # On systems where conda-forge pandoc is preferred, add:
 #   - conda-forge::pandoc>=3

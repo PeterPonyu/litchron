@@ -18,7 +18,7 @@ LitChron is a single-cell chronology system where a terminal LLM agent (Claude C
 ### 1. System dependencies
 
 ```bash
-sudo apt install pandoc latexmk texlive-latex-extra
+sudo apt install pandoc latexmk texlive-latex-extra texlive-bibtex-extra biber
 ```
 
 ### 2. Conda environment
@@ -41,7 +41,7 @@ pip install -e .
 ### 3. Register the MCP server with Claude Code
 
 ```bash
-claude mcp add litchron --transport stdio --command 'conda run -n dl python -m mcp_litchron.server'
+claude mcp add litchron -- conda run -n dl python -m mcp_litchron.server
 ```
 
 Verify registration:

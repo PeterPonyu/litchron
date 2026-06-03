@@ -41,6 +41,7 @@ class PreflightReport(BaseModel):
 
     pandoc: Optional[str] = None
     latexmk: Optional[str] = None
+    biber: Optional[str] = None
     rscript: Optional[str] = None
     r_version: Optional[str] = None
 
@@ -94,6 +95,7 @@ def check_environment(require_r: bool = False) -> PreflightReport:
     # --- binaries ---------------------------------------------------------
     report.pandoc = _which_with_env_bin("pandoc")
     report.latexmk = _which_with_env_bin("latexmk")
+    report.biber = _which_with_env_bin("biber")
     report.rscript = _which_with_env_bin("Rscript")
 
     if report.rscript is not None:
@@ -122,6 +124,12 @@ def check_environment(require_r: bool = False) -> PreflightReport:
         report.missing.append("pandoc")
     if report.latexmk is None:
         report.missing.append("latexmk")
+    if report.biber is None:
+        report.warnings.append(
+            "biber not found; the tex template uses backend=biber, so the "
+            "bibliography (references) will not compile — install "
+            "texlive-bibtex-extra and biber"
+        )
     if not report.mcp_importable:
         report.missing.append("mcp (python package)")
 
@@ -159,7 +167,7 @@ def assert_critical_or_raise(report: PreflightReport) -> None:
         f"Missing: {', '.join(report.missing) or '(none listed)'}",
         "",
         "To install system binaries on Debian/Ubuntu:",
-        "    sudo apt install pandoc latexmk texlive-latex-extra",
+        "    sudo apt install pandoc latexmk texlive-latex-extra texlive-bibtex-extra biber",
         "",
         "To install the MCP Python package:",
         "    pip install 'mcp>=1.0'",
