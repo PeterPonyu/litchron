@@ -11,7 +11,7 @@ Every DOI or PMID emitted by the LLM in `propose_ordering` must pass a three-sig
 - **Model**: `sentence-transformers/all-MiniLM-L6-v2` (loaded from the `dl` conda env HuggingFace cache).
 - **Input A**: The `context` string passed by the LLM when calling `verify_doi` / `verify_pmid`. This should be the sentence or claim the citation is meant to support.
 - **Input B**: The abstract fetched from CrossRef (`abstract` field) or PubMed (`Summary` → `abstract`). Falls back to the title if no abstract is available.
-- **Threshold**: cosine similarity ≥ 0.6.
+- **Threshold**: cosine similarity ≥ 0.55.
 - **Failure reason code**: `cosine_below_threshold`.
 
 ### Signal 2 — Year Match (temporal accuracy)
@@ -43,9 +43,9 @@ Every DOI or PMID emitted by the LLM in `propose_ordering` must pass a three-sig
 All numeric thresholds are configurable in `litchron/config.py`:
 
 ```python
-CITATION_COSINE_THRESHOLD: float = 0.6
+CITATION_COSINE_THRESHOLD: float = 0.55
 CITATION_YEAR_TOLERANCE: int = 1
-CITATION_AUTHOR_MIN_OVERLAP: int = 1
+CITATION_AUTHOR_OVERLAP_MIN: int = 1
 CITATION_HTTP_TIMEOUT_S: float = 5.0
 CITATION_HTTP_RETRIES: int = 3
 CITATION_CACHE_TTL_DAYS: int = 30

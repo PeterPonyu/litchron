@@ -52,11 +52,22 @@ claude mcp list
 
 ## Running a single h5ad
 
-Paste the following prompt into a Claude Code session:
+Run LitChron as a one-shot from your shell (the MCP server must already be
+registered, see above):
 
-```
+```bash
 claude -p "Drive LitChron to completion on /path/to/data.h5ad. Stop when report_status().all_green is true."
 ```
+
+**Demo**: if you don't have a dataset handy, materialize one of scanpy's
+bundled example datasets first, then point the prompt at it:
+
+```bash
+python -c "import scanpy as sc; sc.datasets.paul15().write('data/paul15.h5ad')"
+claude -p "Drive LitChron to completion on data/paul15.h5ad. Stop when report_status().all_green is true."
+```
+
+(`sc.datasets.pbmc3k()` is another small, fast option.)
 
 Claude Code will call MCP tools in sequence — `start_run` → `load_h5ad` → `compute_observations` → `propose_ordering` (with citations) → `verify_doi`/`verify_pmid` → `run_baseline` (per method) → `compare_orderings` → `append_section` → `compile_pdf` → `finalize_run` — and stop autonomously when every phase is verified complete.
 
