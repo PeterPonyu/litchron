@@ -35,6 +35,10 @@ audit = [
     "scivcd @ git+https://github.com/PeterPonyu/scivcd.git@v0.1.0",
 ]
 
+[tool.hatch.metadata]
+# Required so the `audit` extra can reference scivcd via a direct git URL.
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["litchron", "mcp_litchron"]
 
