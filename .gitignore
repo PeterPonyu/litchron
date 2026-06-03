@@ -27,9 +27,10 @@ dist/
 build/
 .coverage
 
-# OMC session ephemera. The spec/plan artifacts under .omc/specs/ and
-# .omc/plans/ are deliverables and stay tracked; everything else regenerates
-# from session state.
+# OMC session ephemera. Internal planning specs under .omc/specs/ are not
+# part of the public distribution and must not be tracked; everything here
+# regenerates from session state.
+.omc/specs/
 .omc/state/
 .omc/handoffs/
 .omc/sessions/
