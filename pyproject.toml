@@ -28,7 +28,10 @@ dev = [
     "mypy",
 ]
 audit = [
-    "scivcd==0.1.1",
+    # scivcd is not published to PyPI; install from its public git source.
+    # NEEDS OWNER CONFIRMATION: confirm this git URL / ref is the intended
+    # distribution channel and pin a tag/commit once one is published.
+    "scivcd @ git+https://github.com/PeterPonyu/scivcd.git",
 ]
 
 [tool.hatch.build.targets.wheel]

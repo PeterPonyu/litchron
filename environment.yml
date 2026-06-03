@@ -32,7 +32,8 @@ dependencies:
   - pip:
       - mcp>=1.0
       - pydantic>=2
-      - litchron  # editable install handled by `pip install -e .` after env create
+      # NOTE: litchron itself is installed separately as an editable install
+      # via `pip install -e .` after env creation (it is not published to PyPI).
 
 # System dependencies (install separately via apt):
 #   sudo apt install pandoc latexmk texlive-latex-extra
