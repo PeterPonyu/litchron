@@ -10,15 +10,17 @@ The plugin's `.mcp.json` references `${LITCHRON_PYTHON}` for both MCP `command` 
 # Conda env "dl" (LitChron development default)
 export LITCHRON_PYTHON="$(conda run -n dl which python3)"
 
-# Or directly:
-export LITCHRON_PYTHON=/home/zeyufu/miniconda3/envs/dl/bin/python
+# Or directly (adjust the path for your machine):
+export LITCHRON_PYTHON=/path/to/conda/envs/dl/bin/python
 ```
 
 Set it before launching Claude Code:
 
 ```bash
-LITCHRON_PYTHON="$(conda run -n dl which python3)" claude --plugin-dir /home/zeyufu/Desktop/labs/active/litchron/plugin
+LITCHRON_PYTHON="$(conda run -n dl which python3)" claude --plugin-dir /path/to/litchron/plugin
 ```
+
+> Adjust the paths above for your machine: point `LITCHRON_PYTHON` at the Python interpreter in your environment, and `--plugin-dir` at this repo's `plugin/` directory.
 
 Or persist it in your shell rc, or add it to Claude Code's settings:
 
@@ -26,7 +28,7 @@ Or persist it in your shell rc, or add it to Claude Code's settings:
 // ~/.claude/settings.json
 {
   "env": {
-    "LITCHRON_PYTHON": "/home/zeyufu/miniconda3/envs/dl/bin/python"
+    "LITCHRON_PYTHON": "/path/to/conda/envs/dl/bin/python"
   }
 }
 ```
