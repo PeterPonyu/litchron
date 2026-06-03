@@ -6,6 +6,7 @@ if introduced later, can be layered on top by re-binding at import time.
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 # --- Citation verification thresholds -------------------------------------
@@ -18,8 +19,14 @@ CITATION_CACHE_TTL_DAYS: int = 30
 CITATION_HTTP_TIMEOUT_S: float = 5.0
 CITATION_HTTP_RETRIES: int = 3
 
+# Contact email embedded in the CrossRef polite-pool User-Agent. Override via
+# the LITCHRON_CONTACT_EMAIL env var; defaults to a neutral, non-personal
+# maintainers alias.
+CROSSREF_CONTACT_EMAIL: str = os.environ.get(
+    "LITCHRON_CONTACT_EMAIL", "litchron-maintainers@users.noreply.github.com"
+)
 CROSSREF_USER_AGENT: str = (
-    "LitChron/0.1.0 (mailto:peterponyusmith@gmail.com)"
+    f"LitChron/0.1.0 (mailto:{CROSSREF_CONTACT_EMAIL})"
 )
 CROSSREF_RATE_LIMIT_RPS: int = 40
 PUBMED_RATE_LIMIT_RPS: int = 3

@@ -68,8 +68,10 @@ CITATION_CACHE_TTL_DAYS: int = 30
 `verify_doi` uses the CrossRef polite pool. The HTTP `User-Agent` header is:
 
 ```
-LitChron/0.1.0 (mailto:peterponyusmith@gmail.com)
+LitChron/0.1.0 (mailto:litchron-maintainers@users.noreply.github.com)
 ```
+
+The contact email defaults to the neutral maintainers alias above and is configurable via the `LITCHRON_CONTACT_EMAIL` environment variable (see `CROSSREF_CONTACT_EMAIL` in `litchron/config.py`).
 
 This grants higher rate limits (~40 req/s soft cap vs. 5 req/s anonymous). The `httpx.Client` applies a token-bucket limiter staying below 40 req/s.
 
