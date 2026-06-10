@@ -23,7 +23,7 @@ Every DOI or PMID emitted by the LLM in `propose_ordering` must pass a three-sig
 ### Signal 3 — Author Overlap (identity confirmation)
 
 - **Condition**: Applied only when the LLM provides an `authors` list (surnames or full names).
-- **Required overlap**: ≥ 1 surname in common (case-insensitive, diacritic-normalised via `unicodedata.normalize("NFC", ...)`).
+- **Required overlap**: ≥ 1 surname in common (case-insensitive, diacritic-folded via NFKD decomposition + combining-mark removal, so e.g. "Müller" matches "Muller"; non-Latin base characters are preserved).
 - **Failure reason code**: `author_mismatch`.
 
 ## Reason Code Enum

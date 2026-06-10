@@ -84,19 +84,23 @@ def _now_iso() -> str:
 def _surname(name: str) -> str:
     """Extract a comparable surname token from a free-form author string.
 
-    Handles "Smith, John A." and "John A. Smith" forms; falls back to
-    the last whitespace-separated token otherwise. Lowercased, ASCII-folded
-    via a permissive strategy (we don't import unicodedata here to keep
-    cold imports cheap — surname overlap is a loose signal).
+    Handles "Smith, John A." and "John A. Smith" forms; falls back to the last
+    whitespace-separated token otherwise. Lowercased and diacritic-folded
+    (NFKD decomposition + combining-mark removal) so "Müller" and "Muller"
+    compare equal. Base characters are preserved, so non-Latin surnames (e.g.
+    CJK) still match exactly rather than being dropped.
     """
     if not name:
         return ""
+    import unicodedata
+
     s = name.strip()
     if "," in s:
         s = s.split(",", 1)[0]
     else:
         s = s.split()[-1] if s.split() else s
-    return s.lower()
+    folded = "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+    return folded.lower()
 
 
 def _author_overlap(claimed: Iterable[str], verified: Iterable[str]) -> int:
