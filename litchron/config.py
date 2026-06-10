@@ -10,7 +10,17 @@ import os
 from pathlib import Path
 
 # --- Citation verification thresholds -------------------------------------
-CITATION_COSINE_THRESHOLD: float = 0.55
+# Cosine floor for the relevance signal. Override via LITCHRON_CITATION_COSINE_THRESHOLD.
+# Calibration on BEIR/SciFact (studies/citation_threshold_calibration.py) shows the
+# current model (all-MiniLM-L6-v2) separates relevant vs. irrelevant abstracts well
+# (AUC 0.990), but 0.55 is conservative — it gives precision 1.00 / recall 0.57, i.e.
+# it drops ~43% of relevant citations. The data-derived precision>=0.95 operating
+# point is ~0.40 (recall 0.86). The threshold is also model-specific, so re-run the
+# study if you change EMBED_MODEL. Kept at 0.55 by default (high precision); lower it
+# toward 0.40 to recover recall.
+CITATION_COSINE_THRESHOLD: float = float(
+    os.environ.get("LITCHRON_CITATION_COSINE_THRESHOLD", "0.55")
+)
 CITATION_YEAR_TOLERANCE: int = 1
 CITATION_AUTHOR_OVERLAP_MIN: int = 1
 CITATION_CACHE_TTL_DAYS: int = 30
