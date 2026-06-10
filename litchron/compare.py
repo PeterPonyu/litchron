@@ -12,6 +12,14 @@ shape is ``flat_ranking`` or ``tree``:
 Undefined cells (e.g. tree-shaped LLM output paired with a flat-shaped
 baseline that has no edges and no rankable surrogate) raise
 :class:`ComparisonProtocolError` rather than silently returning ``None``.
+
+Pseudotime is defined only up to a monotone reparameterization **and**
+direction, so the signed Spearman/Kendall of a correct-but-reversed baseline is
+~ -1 even though it agrees. Each row therefore also reports ``abs_spearman``
+(direction-invariant agreement) and ``spearman_pvalue`` /
+``agreement_no_better_than_chance`` (an n-aware significance judgment, instead of
+a magic |rho| cutoff). See ``studies/pseudotime_direction.py`` for the
+empirical grounding.
 """
 from __future__ import annotations
 
@@ -37,6 +45,15 @@ class ComparisonRow(BaseModel):
     baseline_shape: Shape
     spearman: Optional[float] = None
     kendall_tau: Optional[float] = None
+    # Direction-invariant agreement. Pseudotime is defined only up to monotone
+    # reparameterization AND direction, so a correct-but-reversed baseline scores
+    # spearman ~ -1 even though it agrees. abs_spearman is the direction-robust
+    # effect size; spearman_pvalue judges significance in an n-aware way (so no
+    # magic |rho| cutoff is needed); agreement_no_better_than_chance is True when
+    # the correlation is not significant at alpha=0.05.
+    abs_spearman: Optional[float] = None
+    spearman_pvalue: Optional[float] = None
+    agreement_no_better_than_chance: Optional[bool] = None
     jaccard_edges: Optional[float] = None
     rank_bin_jaccard: Optional[float] = None
     root_cell_agreement: Optional[bool] = None
@@ -70,15 +87,38 @@ def _intersect_align(
     return a.loc[common], b.loc[common]
 
 
-def _spearman_kendall(a: pd.Series, b: pd.Series) -> tuple[Optional[float], Optional[float]]:
+# Significance level below which a rank correlation is treated as real agreement.
+# Using the p-value (which already accounts for sample size n) avoids a magic
+# |rho| cutoff, which would mean very different things for ~12 clusters vs 10^4
+# cells. Empirically grounded in studies/pseudotime_direction.py.
+AGREEMENT_ALPHA: float = 0.05
+
+
+def _spearman_kendall(
+    a: pd.Series, b: pd.Series
+) -> tuple[Optional[float], Optional[float], Optional[float]]:
+    """Return (spearman, kendall_tau, spearman_pvalue) over the shared index."""
     a2, b2 = _intersect_align(a, b)
     if len(a2) < 2:
-        return None, None
-    sp = spearmanr(a2.values, b2.values).statistic
+        return None, None, None
+    sr = spearmanr(a2.values, b2.values)
     kt = kendalltau(a2.values, b2.values).statistic
+    sp = sr.statistic
     sp_f = float(sp) if sp == sp else None  # NaN guard
     kt_f = float(kt) if kt == kt else None
-    return sp_f, kt_f
+    pv_f = float(sr.pvalue) if sr.pvalue == sr.pvalue else None
+    return sp_f, kt_f, pv_f
+
+
+def _invariant_fields(
+    sp: Optional[float], pv: Optional[float]
+) -> tuple[Optional[float], Optional[float], Optional[bool]]:
+    """Derive (abs_spearman, pvalue, agreement_no_better_than_chance) from a
+    signed Spearman + its p-value. Direction is dropped (|rho|) because
+    pseudotime is direction-ambiguous; significance is judged on the p-value."""
+    abs_sp = abs(sp) if sp is not None else None
+    chance = (pv is not None and pv > AGREEMENT_ALPHA)
+    return abs_sp, pv, chance
 
 
 def _edge_jaccard(
@@ -183,13 +223,17 @@ def compare(
         and _looks_like_cell_index(llm_ordering)
         and _looks_like_cell_index(baseline_ordering)
     ):
-        sp, kt = _spearman_kendall(llm_ordering, baseline_ordering)
+        sp, kt, pv = _spearman_kendall(llm_ordering, baseline_ordering)
+        abs_sp, pv, chance = _invariant_fields(sp, pv)
         return ComparisonRow(
             baseline=baseline_name,
             llm_shape=llm_shape,
             baseline_shape=baseline_shape,
             spearman=sp,
             kendall_tau=kt,
+            abs_spearman=abs_sp,
+            spearman_pvalue=pv,
+            agreement_no_better_than_chance=chance,
             notes="per-cell vs per-cell: Spearman + Kendall tau over cell-ID intersection",
         )
 
@@ -211,14 +255,18 @@ def compare(
 
     # -- (flat, flat) -----------------------------------------------------
     if llm_shape == "flat_ranking" and baseline_shape == "flat_ranking":
-        sp, kt = _spearman_kendall(llm_ordering, baseline_ordering)
+        sp, kt, pv = _spearman_kendall(llm_ordering, baseline_ordering)
+        abs_sp, pv, chance = _invariant_fields(sp, pv)
         return ComparisonRow(
             baseline=baseline_name,
             llm_shape=llm_shape,
             baseline_shape=baseline_shape,
             spearman=sp,
             kendall_tau=kt,
-            notes="flat-vs-flat: Spearman + Kendall tau over intersection",
+            abs_spearman=abs_sp,
+            spearman_pvalue=pv,
+            agreement_no_better_than_chance=chance,
+            notes="flat-vs-flat: Spearman + Kendall tau over intersection (|rho|+p for agreement)",
         )
 
     # -- (flat, tree) or (tree, flat) -------------------------------------
@@ -235,9 +283,10 @@ def compare(
 
         # We want Spearman/Kendall between the linearized tree and the flat.
         if llm_shape == "tree":
-            sp, kt = _spearman_kendall(llm_linear, flat)
+            sp, kt, pv = _spearman_kendall(llm_linear, flat)
         else:
-            sp, kt = _spearman_kendall(llm_ordering, flat)
+            sp, kt, pv = _spearman_kendall(llm_ordering, flat)
+        abs_sp, pv, chance = _invariant_fields(sp, pv)
 
         # Edge Jaccard requires both sides expose edges → not the case here.
         # Fall back to 10-bin rank Jaccard over the intersection.
@@ -252,6 +301,9 @@ def compare(
             baseline_shape=baseline_shape,
             spearman=sp,
             kendall_tau=kt,
+            abs_spearman=abs_sp,
+            spearman_pvalue=pv,
+            agreement_no_better_than_chance=chance,
             rank_bin_jaccard=rbj,
             notes="mixed-shape: linearize tree by edge depth, then Spearman/Kendall + 10-bin rank Jaccard",
         )
@@ -279,9 +331,10 @@ def comparison_to_markdown(rows: list[ComparisonRow]) -> str:
     """Render a list of comparison rows as a markdown table."""
     header = (
         "| baseline | llm_shape | baseline_shape | spearman | kendall_tau "
-        "| jaccard_edges | rank_bin_jaccard | root_agreement | notes |"
+        "| abs_spearman | p_value | chance? | jaccard_edges | rank_bin_jaccard "
+        "| root_agreement | notes |"
     )
-    sep = "|---|---|---|---|---|---|---|---|---|"
+    sep = "|---|---|---|---|---|---|---|---|---|---|---|---|"
 
     def fmt(v: Optional[float | bool | str]) -> str:
         if v is None:
@@ -303,6 +356,9 @@ def comparison_to_markdown(rows: list[ComparisonRow]) -> str:
                     r.baseline_shape,
                     fmt(r.spearman),
                     fmt(r.kendall_tau),
+                    fmt(r.abs_spearman),
+                    fmt(r.spearman_pvalue),
+                    fmt(r.agreement_no_better_than_chance),
                     fmt(r.jaccard_edges),
                     fmt(r.rank_bin_jaccard),
                     fmt(r.root_cell_agreement),
