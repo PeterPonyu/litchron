@@ -29,6 +29,7 @@ import pyarrow.parquet as pq  # noqa: E402
 
 from mcp_litchron.errors import BaselineFailure  # noqa: E402
 
+from ..config import RANDOM_SEED  # noqa: E402
 from . import BaselineResult  # noqa: E402
 
 _METHOD = "paga"
@@ -46,7 +47,7 @@ def _pick_cluster_column(adata: Any) -> str:
             return cand
     import scanpy as sc
 
-    sc.tl.leiden(adata, resolution=0.8)
+    sc.tl.leiden(adata, resolution=0.8, random_state=RANDOM_SEED)
     return "leiden"
 
 
@@ -56,7 +57,7 @@ def _ensure_neighbors(adata: Any) -> None:
         return
     import scanpy as sc
 
-    sc.pp.neighbors(adata, n_neighbors=15)
+    sc.pp.neighbors(adata, n_neighbors=15, random_state=RANDOM_SEED)
 
 
 def _heuristic_root_cell(adata: Any) -> str:

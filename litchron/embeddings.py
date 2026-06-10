@@ -20,6 +20,8 @@ from __future__ import annotations
 import scanpy as sc
 from anndata import AnnData
 
+from .config import RANDOM_SEED
+
 
 def _has_existing_embedding(adata: AnnData) -> bool:
     """True iff adata already has PCA, UMAP, and a leiden column."""
@@ -38,6 +40,7 @@ def recompute_embeddings(
     leiden_resolution: float = 1.0,
     n_neighbors: int = 15,
     n_pcs: int = 30,
+    seed: int = RANDOM_SEED,
 ) -> AnnData:
     """Recompute PCA, UMAP, and leiden clustering on ``adata``.
 
@@ -65,6 +68,10 @@ def recompute_embeddings(
         Number of nearest neighbors for the kNN graph.
     n_pcs
         Number of principal components retained.
+    seed
+        Random seed threaded into PCA, neighbors, UMAP, and Leiden so the
+        embedding and cluster labels are reproducible across runs. Defaults to
+        :data:`litchron.config.RANDOM_SEED` (overridable via ``LITCHRON_SEED``).
 
     Returns
     -------
@@ -91,13 +98,13 @@ def recompute_embeddings(
     # tests with 200 cells). scanpy default is 50; we honor the caller's
     # requested n_pcs but never exceed min(n_obs, n_vars) - 1.
     safe_n_pcs = min(int(n_pcs), max(1, min(int(adata.n_obs), int(adata.n_vars)) - 1))
-    sc.pp.pca(adata, n_comps=safe_n_pcs)
+    sc.pp.pca(adata, n_comps=safe_n_pcs, random_state=seed)
 
     safe_n_neighbors = min(int(n_neighbors), max(2, int(adata.n_obs) - 1))
-    sc.pp.neighbors(adata, n_neighbors=safe_n_neighbors)
+    sc.pp.neighbors(adata, n_neighbors=safe_n_neighbors, random_state=seed)
 
-    sc.tl.umap(adata)
-    sc.tl.leiden(adata, resolution=float(leiden_resolution))
+    sc.tl.umap(adata, random_state=seed)
+    sc.tl.leiden(adata, resolution=float(leiden_resolution), random_state=seed)
 
     return adata
 
