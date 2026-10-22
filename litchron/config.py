@@ -37,6 +37,12 @@ GLOBAL_CACHE_DIR: Path = Path.home() / ".cache" / "litchron"
 # --- Embedding model ------------------------------------------------------
 EMBED_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
 
+# --- Reproducibility ------------------------------------------------------
+# Global random seed for stochastic steps (PCA / UMAP / Leiden and baseline
+# clustering), so the numerical comparators are reproducible across runs.
+# Override via the LITCHRON_SEED env var.
+RANDOM_SEED: int = int(os.environ.get("LITCHRON_SEED", "0"))
+
 
 def ensure_cache_dir() -> Path:
     """Create the LitChron cache directory if missing and return its path."""
